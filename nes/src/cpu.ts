@@ -355,6 +355,495 @@ export class Cpu {
                 this.DEY()
                 this.cycles = 2
                 break
+            case 0x49:
+                this.modeImmediate()
+                this.EOR()
+                this.cycles = 2
+                break
+            case 0x45:
+                this.modeZeroPage()
+                this.EOR()
+                this.cycles = 3
+                break
+            case 0x55:
+                this.modeZeroPageX()
+                this.EOR()
+                this.cycles = 4
+                break
+            case 0x4D:
+                this.modeAbsolute()
+                this.EOR()
+                this.cycles = 4
+                break
+            case 0x5D: {
+                const pageCrossed = this.modeAbsoluteX()
+                this.EOR()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0x59: {
+                const pageCrossed = this.modeAbsoluteY()
+                this.EOR()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0x41:
+                this.modeIndirectX()
+                this.EOR()
+                this.cycles = 6
+                break
+            case 0x51: {
+                const pageCrossed = this.modeIndirectY()
+                this.EOR()
+                this.cycles = 5 + pageCrossed
+                break
+            }
+            case 0xE6:
+                this.modeZeroPage()
+                this.INC()
+                this.cycles = 5
+                break
+            case 0xF6:
+                this.modeZeroPageX()
+                this.INC()
+                this.cycles = 6
+                break
+            case 0xEE:
+                this.modeAbsolute()
+                this.INC()
+                this.cycles = 6
+                break
+            case 0xFE:
+                this.modeAbsoluteX()
+                this.INC()
+                this.cycles = 7
+                break
+            case 0xE8:
+                this.modeImplicit()
+                this.INX()
+                this.cycles = 2
+                break
+            case 0xC8:
+                this.modeImplicit()
+                this.INY()
+                this.cycles = 2
+                break
+            case 0x4C:
+                this.modeAbsolute()
+                this.JMP()
+                this.cycles = 3
+                break
+            case 0x6C:
+                this.modeIndirect()
+                this.JMP()
+                this.cycles = 5
+                break
+            case 0x20:
+                this.modeAbsolute()
+                this.JSR()
+                this.cycles = 6
+                break
+            case 0xA9:
+                this.modeImmediate()
+                this.LDA()
+                this.cycles = 2
+                break
+            case 0xA5:
+                this.modeZeroPage()
+                this.LDA()
+                this.cycles = 3
+                break
+            case 0xB5:
+                this.modeZeroPageX()
+                this.LDA()
+                this.cycles = 4
+                break
+            case 0xAD:
+                this.modeAbsolute()
+                this.LDA()
+                this.cycles = 4
+                break
+            case 0xBD: {
+                const pageCrossed = this.modeAbsoluteX()
+                this.LDA()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0xB9: {
+                const pageCrossed = this.modeAbsoluteY()
+                this.LDA()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0xA1:
+                this.modeIndirectX()
+                this.LDA()
+                this.cycles = 6
+                break
+            case 0xB1: {
+                const pageCrossed = this.modeIndirectY()
+                this.LDA()
+                this.cycles = 5 + pageCrossed
+                break
+            }
+            case 0xA2:
+                this.modeImmediate()
+                this.LDX()
+                this.cycles = 2
+                break
+            case 0xA6:
+                this.modeZeroPage()
+                this.LDX()
+                this.cycles = 3
+                break
+            case 0xB6:
+                this.modeZeroPageY()
+                this.LDX()
+                this.cycles = 4
+                break
+            case 0xAE:
+                this.modeAbsolute()
+                this.LDX()
+                this.cycles = 4
+                break
+            case 0xBE: {
+                const pageCrossed = this.modeAbsoluteY()
+                this.LDX()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0xA0:
+                this.modeImmediate()
+                this.LDY()
+                this.cycles = 2
+                break
+            case 0xA4:
+                this.modeZeroPage()
+                this.LDY()
+                this.cycles = 3
+                break
+            case 0xB4:
+                this.modeZeroPageX()
+                this.LDY()
+                this.cycles = 4
+                break
+            case 0xAC:
+                this.modeAbsolute()
+                this.LDY()
+                this.cycles = 4
+                break
+            case 0xBC: {
+                const pageCrossed = this.modeAbsoluteX()
+                this.LDY()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0x4A:
+                this.modeAcccumulator()
+                this.LSR(true)
+                this.cycles = 2
+                break
+            case 0x46:
+                this.modeZeroPage()
+                this.LSR()
+                this.cycles = 5
+                break
+            case 0x56:
+                this.modeZeroPageX()
+                this.LSR()
+                this.cycles = 6
+                break
+            case 0x4E:
+                this.modeAbsolute()
+                this.LSR()
+                this.cycles = 6
+                break
+            case 0x5E:
+                this.modeAbsoluteX()
+                this.LSR()
+                this.cycles = 7
+                break
+            case 0xEA:
+                this.modeImplicit()
+                this.NOP()
+                this.cycles = 2
+                break
+            case 0x09:
+                this.modeImmediate()
+                this.ORA()
+                this.cycles = 2
+                break
+            case 0x05:
+                this.modeZeroPage()
+                this.ORA()
+                this.cycles = 3
+                break
+            case 0x15:
+                this.modeZeroPageX()
+                this.ORA()
+                this.cycles = 4
+                break
+            case 0x0D:
+                this.modeAbsolute()
+                this.ORA()
+                this.cycles = 4
+                break
+            case 0x1D: {
+                const pageCrossed = this.modeAbsoluteX()
+                this.ORA()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0x19: {
+                const pageCrossed = this.modeAbsoluteY()
+                this.ORA()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0x01:
+                this.modeIndirectX()
+                this.ORA()
+                this.cycles = 6
+                break
+            case 0x11: {
+                const pageCrossed = this.modeIndirectY()
+                this.ORA()
+                this.cycles = 5 + pageCrossed
+                break
+            }
+            case 0x48:
+                this.modeImplicit()
+                this.PHA()
+                this.cycles = 3
+                break
+            case 0x08:
+                this.modeImplicit()
+                this.PHP()
+                this.cycles = 3
+                break
+            case 0x68:
+                this.modeImplicit()
+                this.PLA()
+                this.cycles = 4
+                break
+            case 0x28:
+                this.modeImplicit()
+                this.PLP()
+                this.cycles = 4
+                break
+            case 0x2A:
+                this.modeAcccumulator()
+                this.ROL(true)
+                this.cycles = 2
+                break
+            case 0x26:
+                this.modeZeroPage()
+                this.ROL()
+                this.cycles = 5
+                break
+            case 0x36:
+                this.modeZeroPageX()
+                this.ROL()
+                this.cycles = 6
+                break
+            case 0x2E:
+                this.modeAbsolute()
+                this.ROL()
+                this.cycles = 6
+                break
+            case 0x3E:
+                this.modeAbsoluteX()
+                this.ROL()
+                this.cycles = 7
+                break
+            case 0x6A:
+                this.modeAcccumulator()
+                this.ROR(true)
+                this.cycles = 2
+                break
+            case 0x66:
+                this.modeZeroPage()
+                this.ROR()
+                this.cycles = 5
+                break
+            case 0x76:
+                this.modeZeroPageX()
+                this.ROR()
+                this.cycles = 6
+                break
+            case 0x6E:
+                this.modeAbsolute()
+                this.ROR()
+                this.cycles = 6
+                break
+            case 0x7E:
+                this.modeAbsoluteX()
+                this.ROR()
+                this.cycles = 7
+                break
+            case 0x40:
+                this.modeImplicit()
+                this.RTI()
+                this.cycles = 6
+                break
+            case 0x60:
+                this.modeImplicit()
+                this.RTS()
+                this.cycles = 6
+                break
+            case 0xE9:
+                this.modeImmediate()
+                this.SBC()
+                this.cycles = 2
+                break
+            case 0xE5:
+                this.modeZeroPage()
+                this.SBC()
+                this.cycles = 3
+                break
+            case 0xF5:
+                this.modeZeroPageX()
+                this.SBC()
+                this.cycles = 4
+                break
+            case 0xED:
+                this.modeAbsolute()
+                this.SBC()
+                this.cycles = 4
+                break
+            case 0xFD: {
+                const pageCrossed = this.modeAbsoluteX()
+                this.SBC()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0xF9: {
+                const pageCrossed = this.modeAbsoluteY()
+                this.SBC()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0xE1:
+                this.modeIndirectX()
+                this.SBC()
+                this.cycles = 6
+                break
+            case 0xF1: {
+                const pageCrossed = this.modeIndirectY()
+                this.SBC()
+                this.cycles = 5 + pageCrossed
+                break
+            }
+            case 0x38:
+                this.modeImplicit()
+                this.SEC()
+                this.cycles = 2
+                break
+            case 0xF8:
+                this.modeImplicit()
+                this.SED()
+                this.cycles = 2
+                break
+            case 0x78:
+                this.modeImplicit()
+                this.SEI()
+                this.cycles
+                break
+            case 0x85:
+                this.modeZeroPage()
+                this.STA()
+                this.cycles = 3
+                break
+            case 0x95:
+                this.modeZeroPageX()
+                this.STA()
+                this.cycles = 4
+                break
+            case 0x8D:
+                this.modeAbsolute()
+                this.STA()
+                this.cycles = 4
+                break
+            case 0x9D:
+                this.modeAbsoluteX()
+                this.STA()
+                this.cycles = 5
+                break
+            case 0x99:
+                this.modeAbsoluteY()
+                this.STA()
+                this.cycles = 5
+                break
+            case 0x81:
+                this.modeIndirectX()
+                this.STA()
+                this.cycles = 6
+                break
+            case 0x91:
+                this.modeIndirectY()
+                this.STA()
+                this.cycles = 6
+                break
+            case 0x86:
+                this.modeZeroPage()
+                this.STX()
+                this.cycles = 3
+                break
+            case 0x96:
+                this.modeZeroPageY()
+                this.STX()
+                this.cycles = 4
+                break
+            case 0x8E:
+                this.modeAbsolute()
+                this.STX()
+                this.cycles = 4
+                break
+            case 0x84:
+                this.modeZeroPage()
+                this.STY()
+                this.cycles = 3
+                break
+            case 0x94:
+                this.modeZeroPageX()
+                this.STY()
+                this.cycles = 4
+                break
+            case 0x8C:
+                this.modeAbsolute()
+                this.STY()
+                this.cycles = 4
+                break
+            case 0xAA:
+                this.modeImplicit()
+                this.TAX()
+                this.cycles = 2
+                break
+            case 0xA8:
+                this.modeImplicit()
+                this.TAY()
+                this.cycles = 2
+                break
+            case 0xBA:
+                this.modeImplicit()
+                this.TSX()
+                this.cycles = 2
+                break
+            case 0x8A:
+                this.modeImplicit()
+                this.TXA()
+                this.cycles = 2
+                break
+            case 0x9A:
+                this.modeImplicit()
+                this.TXS()
+                this.cycles = 2
+                break
+            case 0x98:
+                this.modeImplicit()
+                this.TYA()
+                this.cycles = 2
+                break
             default:
                 throw new Error(`Unknown opcode: ${this.opcode}`)
         }
@@ -584,8 +1073,17 @@ export class Cpu {
             this.PC = newAddress
         }
     }
+    // TODO: check if this is correct for nes; depends on platform/os
+    // TODO: when writing to stack, should it be 0x0100 + SP
     BRK() {
-        throw new Error("Not implemented; system dependent")
+        this.write(this.SP, this.PC >> 8)
+        this.SP--
+        this.write(this.SP, this.PC & 0xFF)
+        this.SP--
+        this.write(this.SP, this.getFlagsAsByte())
+        this.SP--
+        this.PC = 0xFFFF // IRQ vector
+        this.breakFlag = 1
     }
     BVC() {
         let offset = this.operatingValue
@@ -659,103 +1157,216 @@ export class Cpu {
         this.negativeFlag = this.Y & 0x80 ? 1 : 0
     }
     EOR() {
-        throw new Error("Not implemented")
+        this.Accumulator ^= this.operatingValue
+        this.zeroFlag = this.Accumulator === 0 ? 1 : 0
+        this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     INC() {
-        throw new Error("Not implemented")
+        const result = (this.operatingValue + 1) & 0xFF
+        this.write(this.operatingAddress, result)
+        this.zeroFlag = result === 0 ? 1 : 0
+        this.negativeFlag = result & 0x80 ? 1 : 0
     }
     INX() {
-        throw new Error("Not implemented")
+        this.X = (this.X + 1) & 0xFF
+        this.zeroFlag = this.X === 0 ? 1 : 0
+        this.negativeFlag = this.X & 0x80 ? 1 : 0
     }
     INY() {
-        throw new Error("Not implemented")
+        this.Y = (this.Y + 1) & 0xFF
+        this.zeroFlag = this.Y === 0 ? 1 : 0
+        this.negativeFlag = this.Y & 0x80 ? 1 : 0
     }
     JMP() {
-        throw new Error("Not implemented")
+        this.PC = this.operatingAddress
     }
+    // TODO: maybe check for overflow of stack??
     JSR() {
-        throw new Error("Not implemented")
+        // push to stack this.PC - 1
+        const oldAddress = this.PC - 1
+        this.write(this.SP, oldAddress >> 8)
+        this.SP--
+        this.write(this.SP, oldAddress && 0xFF)
+        this.SP--
+        this.PC = this.operatingAddress
     }
     LDA() {
-        throw new Error("Not implemented")
+        this.Accumulator = this.operatingValue
+        this.zeroFlag = this.Accumulator === 0 ? 1 : 0
+        this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     LDX() {
-        throw new Error("Not implemented")
+        this.X = this.operatingValue
+        this.zeroFlag = this.X === 0 ? 1 : 0
+        this.negativeFlag = this.X & 0x80 ? 1 : 0
     }
     LDY() {
-        throw new Error("Not implemented")
+        this.Y = this.operatingValue
+        this.zeroFlag = this.Y === 0 ? 1 : 0
+        this.negativeFlag = this.Y & 0x80 ? 1 : 0
     }
-    LSR() {
-        throw new Error("Not implemented")
+    LSR(targetAccumulator: boolean = false) {
+        this.carryFlag = this.operatingValue & 0x1
+        let result = (this.operatingValue >> 1) & 0xFF
+        this.zeroFlag = result === 0 ? 1 : 0
+        this.negativeFlag = 0
+
+        if (targetAccumulator) {
+            this.Accumulator = result
+        } else {
+            this.write(this.operatingAddress, result)
+        }
     }
     NOP() {
-        throw new Error("Not implemented")
+        // NOOP
     }
     ORA() {
-        throw new Error("Not implemented")
+        this.Accumulator |= this.operatingValue
+        this.zeroFlag = this.Accumulator === 0 ? 1 : 0
+        this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     PHA() {
-        throw new Error("Not implemented")
+        this.write(this.SP, this.Accumulator)
+        this.SP--
     }
     PHP() {
-        throw new Error("Not implemented")
+        const flags = this.getFlagsAsByte()
+        this.write(this.SP, flags)
+        this.SP--
     }
     PLA() {
-        throw new Error("Not implemented")
+        this.Accumulator = this.read(this.SP)
+        this.SP++
+        this.zeroFlag = this.Accumulator === 0 ? 1 : 0
+        this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     PLP() {
-        throw new Error("Not implemented")
+        const flags = this.read(this.SP)
+        this.SP++
+        this.setFlagsFromByte(flags)
     }
-    ROL() {
-        throw new Error("Not implemented")
+    ROL(targetAccumulator: boolean = false) {
+        let result = (this.operatingValue << 1) & 0xFF
+        result |= this.carryFlag
+
+        this.carryFlag = this.operatingValue & 0x80 ? 1 : 0
+        this.zeroFlag = result === 0 ? 1 : 0 // TDOO: docs say only if A is 0, but i think that is wrong
+        this.negativeFlag = (result & 0x80) ? 1 : 0
+
+        if (targetAccumulator) {
+            this.Accumulator = result
+        } else {
+            this.write(this.operatingAddress, result)
+        }
     }
-    ROR() {
-        throw new Error("Not implemented")
+    ROR(targetAccumulator: boolean = false) {
+        let result = (this.operatingValue >> 1) & 0xFF
+        result |= this.carryFlag << 7
+
+        this.carryFlag = this.operatingValue & 0x1
+        this.zeroFlag = result === 0 ? 1 : 0 // TDOO: docs say only if A is 0, but i think that is wrong
+        this.negativeFlag = (result & 0x80) ? 1 : 0
+
+        if (targetAccumulator) {
+            this.Accumulator = result
+        } else {
+            this.write(this.operatingAddress, result)
+        }
     }
     RTI() {
-        throw new Error("Not implemented")
+        const flags = this.read(this.SP)
+        this.SP++
+        this.setFlagsFromByte(flags)
+
+        const loPc = this.read(this.SP)
+        this.SP++
+        const hiPc = this.read(this.SP)
+        this.SP++
+        this.PC = (hiPc << 8) | loPc
     }
     RTS() {
-        throw new Error("Not implemented")
+        const lo = this.read(this.SP)
+        this.SP++
+        const hi = this.read(this.SP) << 8
+        this.SP++
+        this.PC = (hi | lo) + 1
     }
+    // TODO: !IMPORTANT this is probably wrong i didn't double check overflows etc... copied ADC 
     SBC() {
-        throw new Error("Not implemented")
+        let result = this.Accumulator - this.operatingValue - 1 + this.carryFlag
+
+        this.carryFlag = result > 0xFF ? 1 : 0
+        this.zeroFlag = (result & 0xFF) === 0 ? 1 : 0
+        this.overflowFlag = !(this.Accumulator & 0x80 ^ this.operatingValue & 0x80) && (this.Accumulator & 0x80 ^ result & 0x80) ? 1 : 0
+        this.negativeFlag = result & 0x80 ? 1 : 0
+
+        this.Accumulator = result
     }
     SEC() {
-        throw new Error("Not implemented")
+        this.carryFlag = 1
     }
     SED() {
-        throw new Error("Not implemented")
+        this.decimalFlag = 1
     }
     SEI() {
-        throw new Error("Not implemented")
+        this.interruptFlag = 1
     }
     STA() {
-        throw new Error("Not implemented")
+        this.write(this.operatingAddress, this.Accumulator)
     }
     STX() {
-        throw new Error("Not implemented")
+        this.write(this.operatingAddress, this.X)
     }
     STY() {
-        throw new Error("Not implemented")
+        this.write(this.operatingAddress, this.Y)
     }
     TAX() {
-        throw new Error("Not implemented")
+        this.X = this.Accumulator
+        this.zeroFlag = this.X === 0 ? 1 : 0
+        this.negativeFlag = this.X & 0x80 ? 1 : 0
     }
     TAY() {
-        throw new Error("Not implemented")
+        this.Y = this.Accumulator
+        this.zeroFlag = this.Y === 0 ? 1 : 0
+        this.negativeFlag = this.Y & 0x80 ? 1 : 0
     }
     TSX() {
-        throw new Error("Not implemented")
+        this.X = this.SP
+        this.zeroFlag = this.X === 0 ? 1 : 0
+        this.negativeFlag = this.X & 0x80 ? 1 : 0
     }
     TXA() {
-        throw new Error("Not implemented")
+        this.Accumulator = this.X
+        this.zeroFlag = this.Accumulator === 0 ? 1 : 0
+        this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     TXS() {
-        throw new Error("Not implemented")
+        this.SP = this.X
     }
     TYA() {
-        throw new Error("Not implemented")
+        this.Accumulator = this.Y
+        this.zeroFlag = this.Accumulator === 0 ? 1 : 0
+        this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
+    }
+
+    // Helpers
+
+    setFlagsFromByte(flags: number): void {
+        this.carryFlag = (flags >> 0) & 0x1
+        this.zeroFlag = (flags >> 1) & 0x1
+        this.interruptFlag = (flags >> 2) & 0x1
+        this.decimalFlag = (flags >> 3) & 0x1
+        this.breakFlag = (flags >> 4) & 0x1
+        this.overflowFlag = (flags >> 6) & 0x1
+        this.negativeFlag = (flags >> 7) & 0x1
+    }
+
+    getFlagsAsByte(): number {
+        return this.carryFlag << 0 | this.zeroFlag << 1 | this.interruptFlag << 2
+            | this.decimalFlag << 3 | this.breakFlag << 4 | this.overflowFlag << 6
+            | this.negativeFlag << 7
     }
 
 }
+
+
