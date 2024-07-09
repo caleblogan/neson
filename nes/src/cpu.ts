@@ -1,4 +1,7 @@
 const STACK_BOTTOM = 0x0100
+const INTERRUPT_VECTOR_NMI = 0xFFFA
+const INTERRUPT_VECTOR_RESET = 0xFFFC
+const INTERRUPT_VECTOR_IRQ = 0xFFFE
 
 export class Cpu {
     // TODO: memory should be a separate class and in the bus
@@ -44,13 +47,18 @@ export class Cpu {
     // extra cycles are added for page boundary, branch taken & branch take page boundary
     cycles: number = 0
 
+    // Don't call reset. Power state is different than reset state
     constructor() {
-        this.reset()
+        this.PC = 0xFFFC // (this.read(0xFFFD) << 8) | this.read(0xFFFC)
+        this.SP = 0xFD
+        this.interruptFlag = 1
     }
 
+    // TODO: figure out how to handle interrupts
     reset() {
-        this.PC = 0x0000 // TODO: lookup start address
-        // TODO: thise requires many more things such as setting cycles, flags, etc.
+        this.PC = 0xFFFC
+        this.SP -= 3
+        this.interruptFlag = 1
     }
 
     read(address: number) {
@@ -1082,7 +1090,7 @@ export class Cpu {
         this.pushStack(this.PC >> 8)
         this.pushStack(this.PC & 0xFF)
         this.pushStack(this.getFlagsAsByte())
-        this.PC = 0xFFFF // IRQ vector
+        this.PC = this.read(INTERRUPT_VECTOR_IRQ + 1) << 8 | this.read(INTERRUPT_VECTOR_IRQ)
         this.breakFlag = 1
     }
     BVC() {
