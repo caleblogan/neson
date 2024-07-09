@@ -118,10 +118,12 @@ export class Cpu {
     // Addressing Modes
     // If boundary is crossed, return 1
     modeImplicit(): number {
-        throw new Error("Not implemented")
+        // Noop -- values are implied
+        return 0
     }
     modeAcccumulator(): number {
-        throw new Error("Not implemented")
+        this.operatingValue = this.Accumulator
+        return 0
     }
     modeImmediate(): number {
         this.operatingValue = this.read(this.PC)
@@ -143,10 +145,17 @@ export class Cpu {
         return 0
     }
     modeZeroPageY(): number {
-        throw new Error("Not implemented")
+        const offset = this.read(this.PC)
+        this.PC++
+        this.operatingAddress = (offset + this.Y) & 0xFF
+        this.operatingValue = this.read(this.operatingAddress)
+        return 0
     }
     modeRelative(): number {
-        throw new Error("Not implemented")
+        // signed offset -128 to 127
+        this.operatingValue = this.read(this.PC)
+        this.PC++
+        return 0
     }
     modeAbsolute(): number {
         const lo = this.read(this.PC)
@@ -157,7 +166,7 @@ export class Cpu {
         this.operatingValue = this.read(this.operatingAddress)
         return 0
     }
-    // page bounderies
+    // page boundary
     modeAbsoluteX(): number {
         const lo = this.read(this.PC)
         this.PC++
@@ -167,17 +176,54 @@ export class Cpu {
         this.operatingAddress = operand + this.X
         return (operand & 0xFF00) !== (this.operatingAddress & 0xFF00) ? 1 : 0
     }
+    // page boundary
     modeAbsoluteY(): number {
-        throw new Error("Not implemented")
+        const lo = this.read(this.PC)
+        this.PC++
+        const hi = this.read(this.PC)
+        this.PC++
+        const operand = (hi << 8) | lo
+        this.operatingAddress = operand + this.Y
+        return (operand & 0xFF00) !== (this.operatingAddress & 0xFF00) ? 1 : 0
     }
     modeIndirect(): number {
-        throw new Error("Not implemented")
+        const loPtr = this.read(this.PC)
+        this.PC++
+        const hiPtr = this.read(this.PC)
+        this.PC++
+        const ptr = (hiPtr << 8) | loPtr
+        // bug in hardware. if 
+        if (loPtr === 0xFF) {
+            this.operatingAddress = (this.read(ptr & 0xFF00) << 8) | this.read(ptr)
+        } else {
+            this.operatingAddress = (this.read(ptr + 1) << 8) | this.read(ptr)
+        }
+        return 0
     }
+    // TODO: double check this; i believe you are supposed to load the address from the zero page and then follow that
+    // to the real address. Not sure if wrap around is correct when reading address from zero page.
     modeIndirectX(): number {
-        throw new Error("Not implemented")
+        const instructionValue = this.read(this.PC)
+        this.PC++
+        const lo = this.read((instructionValue + this.X) & 0xFF)
+        const hi = this.read((instructionValue + this.X + 1) & 0xFF)
+        this.operatingAddress = (hi << 8) | lo
+        this.operatingValue = this.read(this.operatingAddress)
+        return 0
     }
     modeIndirectY(): number {
-        throw new Error("Not implemented")
+        const instructionValue = this.read(this.PC)
+        this.PC++
+        // val = PEEK(PEEK(arg) + PEEK((arg + 1) % 256) * 256 + Y)
+        const lo = this.read(instructionValue)
+        const hi = this.read((instructionValue + 1) & 0xFF)
+        this.operatingAddress = ((hi << 8) | lo) + this.Y
+        this.operatingValue = this.read(this.operatingAddress)
+        // page overflow -- if y causes lo byte to carry
+        if ((this.operatingAddress & 0xFF00) !== (hi << 8)) {
+            return 1
+        }
+        return 0
     }
 
     // Instruction Opcodes
