@@ -87,14 +87,12 @@ export class Cpu {
             case 0x7D: {
                 const extraCycle = this.modeAbsoluteX()
                 this.ADC()
-                // +1 cycle if page boundary is crossed
                 this.cycles = 4 + extraCycle
                 break
             }
             case 0x79: {
                 const extraCycle = this.modeAbsoluteY()
                 this.ADC()
-                // +1 cycle if page boundary is crossed
                 this.cycles = 4 + extraCycle
                 break
             }
@@ -106,90 +104,234 @@ export class Cpu {
             case 0x71: {
                 const extraCycle = this.modeIndirectY()
                 this.ADC()
-                // +1 cycle if page boundary is crossed
                 this.cycles = 5 + extraCycle
                 break
             }
             default:
                 throw new Error(`Unknown opcode: ${this.opcode}`)
         }
-        this.cycles -= 1
+        this.cycles--
     }
 
     // Addressing Modes
     // If boundary is crossed, return 1
-    modeImplicit() { return 0 }
-    modeAcccumulator() { return 0 }
-    modeImmediate() { return 0 }
-    modeZeroPage() { return 0 }
-    modeZeroPageX() { return 0 }
-    modeZeroPageY() { return 0 }
-    modeRelative() { return 0 }
-    modeAbsolute() { return 0 }
-    modeAbsoluteX() { return 0 }
-    modeAbsoluteY() { return 0 }
-    modeIndirect() { return 0 }
-    modeIndirectX() { return 0 }
-    modeIndirectY() { return 0 }
-
-    // Instructions
-    ADC() {
-        this.Accumulator = this.Accumulator + this.operatingValue + this.carryFlag
+    modeImplicit(): number {
+        throw new Error("Not implemented")
     }
-    AND() { }
-    ASL() { }
-    BCC() { }
-    BCS() { }
-    BEQ() { }
-    BIT() { }
-    BMI() { }
-    BNE() { }
-    BPL() { }
-    BRK() { }
-    BVC() { }
-    BVS() { }
-    CLC() { }
-    CLD() { }
-    CLI() { }
-    CLV() { }
-    CMP() { }
-    CPX() { }
-    CPY() { }
-    DEC() { }
-    DEX() { }
-    DEY() { }
-    EOR() { }
-    INC() { }
-    INX() { }
-    INY() { }
-    JMP() { }
-    JSR() { }
-    LDA() { }
-    LDX() { }
-    LDY() { }
-    LSR() { }
-    NOP() { }
-    ORA() { }
-    PHA() { }
-    PHP() { }
-    PLA() { }
-    PLP() { }
-    ROL() { }
-    ROR() { }
-    RTI() { }
-    RTS() { }
-    SBC() { }
-    SEC() { }
-    SED() { }
-    SEI() { }
-    STA() { }
-    STX() { }
-    STY() { }
-    TAX() { }
-    TAY() { }
-    TSX() { }
-    TXA() { }
-    TXS() { }
-    TYA() { }
+    modeAcccumulator(): number {
+        throw new Error("Not implemented")
+    }
+    modeImmediate(): number {
+        throw new Error("Not implemented")
+    }
+    modeZeroPage(): number {
+        throw new Error("Not implemented")
+    }
+    modeZeroPageX(): number {
+        throw new Error("Not implemented")
+    }
+    modeZeroPageY(): number {
+        throw new Error("Not implemented")
+    }
+    modeRelative(): number {
+        throw new Error("Not implemented")
+    }
+    modeAbsolute(): number {
+        throw new Error("Not implemented")
+    }
+    modeAbsoluteX(): number {
+        throw new Error("Not implemented")
+    }
+    modeAbsoluteY(): number {
+        throw new Error("Not implemented")
+    }
+    modeIndirect(): number {
+        throw new Error("Not implemented")
+    }
+    modeIndirectX(): number {
+        throw new Error("Not implemented")
+    }
+    modeIndirectY(): number {
+        throw new Error("Not implemented")
+    }
+
+    // Instruction Opcodes
+    ADC() {
+        let result = this.Accumulator + this.operatingValue + this.carryFlag
+
+        this.carryFlag = result > 0xFF ? 1 : 0
+        this.zeroFlag = (result & 0xFF) === 0 ? 1 : 0
+        // TODO: double check this 
+        // My understanding is if A & M have same sign and result has different sign, then overflow
+        this.overflowFlag = !(this.Accumulator & 0x80 ^ this.operatingValue & 0x80) && (this.Accumulator & 0x80 ^ result & 0x80) ? 1 : 0
+        this.negativeFlag = result & 0x80 ? 1 : 0
+
+        this.Accumulator = result
+    }
+    AND() {
+        throw new Error("Not implemented")
+    }
+    ASL() {
+        throw new Error("Not implemented")
+    }
+    BCC() {
+        throw new Error("Not implemented")
+    }
+    BCS() {
+        throw new Error("Not implemented")
+    }
+    BEQ() {
+        throw new Error("Not implemented")
+    }
+    BIT() {
+        throw new Error("Not implemented")
+    }
+    BMI() {
+        throw new Error("Not implemented")
+    }
+    BNE() {
+        throw new Error("Not implemented")
+    }
+    BPL() {
+        throw new Error("Not implemented")
+    }
+    BRK() {
+        throw new Error("Not implemented")
+    }
+    BVC() {
+        throw new Error("Not implemented")
+    }
+    BVS() {
+        throw new Error("Not implemented")
+    }
+    CLC() {
+        throw new Error("Not implemented")
+    }
+    CLD() {
+        throw new Error("Not implemented")
+    }
+    CLI() {
+        throw new Error("Not implemented")
+    }
+    CLV() {
+        throw new Error("Not implemented")
+    }
+    CMP() {
+        throw new Error("Not implemented")
+    }
+    CPX() {
+        throw new Error("Not implemented")
+    }
+    CPY() {
+        throw new Error("Not implemented")
+    }
+    DEC() {
+        throw new Error("Not implemented")
+    }
+    DEX() {
+        throw new Error("Not implemented")
+    }
+    DEY() {
+        throw new Error("Not implemented")
+    }
+    EOR() {
+        throw new Error("Not implemented")
+    }
+    INC() {
+        throw new Error("Not implemented")
+    }
+    INX() {
+        throw new Error("Not implemented")
+    }
+    INY() {
+        throw new Error("Not implemented")
+    }
+    JMP() {
+        throw new Error("Not implemented")
+    }
+    JSR() {
+        throw new Error("Not implemented")
+    }
+    LDA() {
+        throw new Error("Not implemented")
+    }
+    LDX() {
+        throw new Error("Not implemented")
+    }
+    LDY() {
+        throw new Error("Not implemented")
+    }
+    LSR() {
+        throw new Error("Not implemented")
+    }
+    NOP() {
+        throw new Error("Not implemented")
+    }
+    ORA() {
+        throw new Error("Not implemented")
+    }
+    PHA() {
+        throw new Error("Not implemented")
+    }
+    PHP() {
+        throw new Error("Not implemented")
+    }
+    PLA() {
+        throw new Error("Not implemented")
+    }
+    PLP() {
+        throw new Error("Not implemented")
+    }
+    ROL() {
+        throw new Error("Not implemented")
+    }
+    ROR() {
+        throw new Error("Not implemented")
+    }
+    RTI() {
+        throw new Error("Not implemented")
+    }
+    RTS() {
+        throw new Error("Not implemented")
+    }
+    SBC() {
+        throw new Error("Not implemented")
+    }
+    SEC() {
+        throw new Error("Not implemented")
+    }
+    SED() {
+        throw new Error("Not implemented")
+    }
+    SEI() {
+        throw new Error("Not implemented")
+    }
+    STA() {
+        throw new Error("Not implemented")
+    }
+    STX() {
+        throw new Error("Not implemented")
+    }
+    STY() {
+        throw new Error("Not implemented")
+    }
+    TAX() {
+        throw new Error("Not implemented")
+    }
+    TAY() {
+        throw new Error("Not implemented")
+    }
+    TSX() {
+        throw new Error("Not implemented")
+    }
+    TXA() {
+        throw new Error("Not implemented")
+    }
+    TXS() {
+        throw new Error("Not implemented")
+    }
+    TYA() {
+        throw new Error("Not implemented")
+    }
 
 }
