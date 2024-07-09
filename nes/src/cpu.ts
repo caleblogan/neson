@@ -152,6 +152,209 @@ export class Cpu {
                 this.cycles = 5 + pageCrossed
                 break
             }
+            case 0x0A:
+                this.modeAcccumulator()
+                this.ASL(true)
+                this.cycles = 2
+                break
+            case 0x06:
+                this.modeZeroPage()
+                this.ASL()
+                this.cycles = 5
+                break
+            case 0x16:
+                this.modeZeroPageX()
+                this.ASL()
+                this.cycles = 6
+                break
+            case 0x0E:
+                this.modeAbsolute()
+                this.ASL()
+                this.cycles = 6
+                break
+            case 0x1E:
+                this.modeAbsoluteX()
+                this.ASL()
+                this.cycles = 7
+                break
+            case 0x90:
+                this.modeRelative()
+                this.BCC()
+                this.cycles += 2
+                break
+            case 0xB0:
+                this.modeRelative()
+                this.BCS()
+                this.cycles += 2
+                break
+            case 0xF0:
+                this.modeRelative()
+                this.BEQ()
+                this.cycles += 2
+                break
+            case 0x24:
+                this.modeZeroPage()
+                this.BIT()
+                this.cycles = 3
+                break
+            case 0x2C:
+                this.modeAbsolute()
+                this.BIT()
+                this.cycles = 4
+                break
+            case 0x30:
+                this.modeRelative()
+                this.BMI()
+                this.cycles += 2
+                break
+            case 0xD0:
+                this.modeRelative()
+                this.BNE()
+                this.cycles += 2
+                break
+            case 0x10:
+                this.modeRelative()
+                this.BPL()
+                this.cycles += 2
+                break
+            case 0x00:
+                this.modeImplicit()
+                this.BRK()
+                this.cycles = 7
+                break
+            case 0x50:
+                this.modeRelative()
+                this.BVC()
+                this.cycles += 2
+                break
+            case 0x70:
+                this.modeRelative()
+                this.BVS()
+                this.cycles += 2
+                break
+            case 0x18:
+                this.modeImplicit()
+                this.CLC()
+                this.cycles = 2
+                break
+            case 0xD8:
+                this.modeImplicit()
+                this.CLD()
+                this.cycles = 2
+                break
+            case 0x58:
+                this.modeImplicit()
+                this.CLI()
+                this.cycles = 2
+                break
+            case 0xB8:
+                this.modeImplicit()
+                this.CLV()
+                this.cycles = 2
+                break
+            case 0xC9:
+                this.modeImmediate()
+                this.CMP()
+                this.cycles = 2
+                break
+            case 0xC5:
+                this.modeZeroPage()
+                this.CMP()
+                this.cycles = 3
+                break
+            case 0xD5:
+                this.modeZeroPageX()
+                this.CMP()
+                this.cycles = 4
+                break
+            case 0xCD:
+                this.modeAbsolute()
+                this.CMP()
+                this.cycles = 4
+                break
+            case 0xDD: {
+                const pageCrossed = this.modeAbsoluteX()
+                this.CMP()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0xD9: {
+                const pageCrossed = this.modeAbsoluteY()
+                this.CMP()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0xC1:
+                this.modeIndirectX()
+                this.CMP()
+                this.cycles = 6
+                break
+            case 0xD1: {
+                const pageCrossed = this.modeIndirectY()
+                this.CMP()
+                this.cycles = 5 + pageCrossed
+                break
+            }
+            case 0xE0:
+                this.modeImmediate()
+                this.CPX()
+                this.cycles = 2
+                break
+            case 0xE4:
+                this.modeZeroPage()
+                this.CPX()
+                this.cycles = 3
+                break
+            case 0xEC:
+                this.modeAbsolute()
+                this.CPX()
+                this.cycles = 4
+                break
+            case 0xC0:
+                this.modeImmediate()
+                this.CPY()
+                this.cycles = 2
+                break
+            case 0xC4:
+                this.modeZeroPage()
+                this.CPY()
+                this.cycles = 3
+                break
+            case 0xCC:
+                this.modeAbsolute()
+                this.CPY()
+                this.cycles = 4
+                break
+            case 0xC6:
+                this.modeZeroPage()
+                this.DEC()
+                this.cycles = 5
+                break
+            case 0xD6:
+                this.modeZeroPageX()
+                this.DEC()
+                this.cycles = 6
+                break
+            case 0xCE:
+                this.modeAbsolute()
+                this.DEC()
+                this.cycles = 6
+                break
+            case 0xDE:
+                this.modeAbsoluteX()
+                this.DEC()
+                this.cycles = 7
+                break
+            case 0xCA:
+                this.modeImplicit()
+                this.DEX()
+                this.cycles = 2
+                break
+            case 0x88:
+                this.modeImplicit()
+                this.DEY()
+                this.cycles = 2
+                break
             default:
                 throw new Error(`Unknown opcode: ${this.opcode}`)
         }
@@ -197,6 +400,9 @@ export class Cpu {
     modeRelative(): number {
         // TODO: make sure signed offset -128 to 127 works correctly when using in instructions; 7 bit is 1
         this.operatingValue = this.read(this.PC)
+        if (this.operatingValue & 0x80) {
+            this.operatingValue |= 0xFFFF_FF00 // sign extend; TODO: I think this should work
+        }
         this.PC++
         return 0
     }
@@ -287,68 +493,170 @@ export class Cpu {
         this.zeroFlag = this.Accumulator === 0 ? 1 : 0
         this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
-    ASL() {
-        throw new Error("Not implemented")
+    // TODO: not sure if this is correct
+    ASL(targetAccumulator: boolean = false) {
+        this.carryFlag = this.operatingValue & 0x80 ? 1 : 0
+        let result = (this.operatingValue << 1) & 0xFF
+        this.zeroFlag = result === 0 ? 1 : 0 // TDOO: docs say only if A is 0, but i think that is wrong
+        this.negativeFlag = (result & 0x80) ? 1 : 0
+
+        if (targetAccumulator) {
+            this.Accumulator = result
+        } else {
+            this.write(this.operatingAddress, result)
+        }
     }
     BCC() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.carryFlag === 0) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     BCS() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.carryFlag === 1) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     BEQ() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.zeroFlag === 1) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     BIT() {
-        throw new Error("Not implemented")
+        const result = this.Accumulator & this.operatingValue
+        this.zeroFlag = result === 0 ? 1 : 0
+        this.overflowFlag = (this.operatingValue >> 6) & 1
+        this.negativeFlag = (this.operatingValue >> 7) & 1
     }
     BMI() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.negativeFlag === 1) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     BNE() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.zeroFlag === 0) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     BPL() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.negativeFlag === 0) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     BRK() {
-        throw new Error("Not implemented")
+        throw new Error("Not implemented; system dependent")
     }
     BVC() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.overflowFlag === 0) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     BVS() {
-        throw new Error("Not implemented")
+        let offset = this.operatingValue
+
+        if (this.overflowFlag === 1) {
+            this.cycles++
+            const newAddress = (this.PC + offset) & 0xFFFF
+            if ((newAddress & 0xFF00) !== (this.PC & 0xFF00)) {
+                this.cycles++
+            }
+            this.PC = newAddress
+        }
     }
     CLC() {
-        throw new Error("Not implemented")
+        this.carryFlag = 0
     }
     CLD() {
-        throw new Error("Not implemented")
+        this.decimalFlag = 0
     }
     CLI() {
-        throw new Error("Not implemented")
+        this.interruptFlag = 0
     }
     CLV() {
-        throw new Error("Not implemented")
+        this.overflowFlag = 0
     }
     CMP() {
-        throw new Error("Not implemented")
+        const result = this.Accumulator - this.operatingValue
+        this.carryFlag = this.Accumulator >= this.operatingValue ? 1 : 0
+        this.zeroFlag = result === 0 ? 1 : 0
+        this.negativeFlag = result & 0x80 ? 1 : 0 // TODO: could be problem with signedness
     }
     CPX() {
-        throw new Error("Not implemented")
+        const result = this.X - this.operatingValue
+        this.carryFlag = this.X >= this.operatingValue ? 1 : 0
+        this.zeroFlag = result === 0 ? 1 : 0
+        this.negativeFlag = result & 0x80 ? 1 : 0 // TODO: could be problem with signedness
     }
     CPY() {
-        throw new Error("Not implemented")
+        const result = this.Y - this.operatingValue
+        this.carryFlag = this.Y >= this.operatingValue ? 1 : 0
+        this.zeroFlag = result === 0 ? 1 : 0
+        this.negativeFlag = result & 0x80 ? 1 : 0 // TODO: could be problem with signedness
     }
     DEC() {
-        throw new Error("Not implemented")
+        const result = (this.operatingValue - 1) & 0xFF
+        this.write(this.operatingAddress, result)
+
+        this.zeroFlag = result === 0 ? 1 : 0
+        this.negativeFlag = result & 0x80 ? 1 : 0
     }
     DEX() {
-        throw new Error("Not implemented")
+        this.X = (this.X - 1) & 0xFF
+        this.zeroFlag = this.X === 0 ? 1 : 0
+        this.negativeFlag = this.X & 0x80 ? 1 : 0
     }
     DEY() {
-        throw new Error("Not implemented")
+        this.Y = (this.Y - 1) & 0xFF
+        this.zeroFlag = this.Y === 0 ? 1 : 0
+        this.negativeFlag = this.Y & 0x80 ? 1 : 0
     }
     EOR() {
         throw new Error("Not implemented")
