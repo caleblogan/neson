@@ -109,6 +109,49 @@ export class Cpu {
                 this.cycles = 5 + extraCycle
                 break
             }
+            case 0x29:
+                this.modeImmediate()
+                this.AND()
+                this.cycles = 2
+                break
+            case 0x25:
+                this.modeZeroPage()
+                this.AND()
+                this.cycles = 3
+                break
+            case 0x35:
+                this.modeZeroPageX()
+                this.AND()
+                this.cycles = 4
+                break
+            case 0x2D:
+                this.modeAbsolute()
+                this.AND()
+                this.cycles = 4
+                break
+            case 0x3D: {
+                const pageCrossed = this.modeAbsoluteX()
+                this.AND()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0x39: {
+                const pageCrossed = this.modeAbsoluteY()
+                this.AND()
+                this.cycles = 4 + pageCrossed
+                break
+            }
+            case 0x21:
+                this.modeIndirectX()
+                this.AND()
+                this.cycles = 6
+                break
+            case 0x31: {
+                const pageCrossed = this.modeIndirectY()
+                this.AND()
+                this.cycles = 5 + pageCrossed
+                break
+            }
             default:
                 throw new Error(`Unknown opcode: ${this.opcode}`)
         }
@@ -152,7 +195,7 @@ export class Cpu {
         return 0
     }
     modeRelative(): number {
-        // signed offset -128 to 127
+        // TODO: make sure signed offset -128 to 127 works correctly when using in instructions; 7 bit is 1
         this.operatingValue = this.read(this.PC)
         this.PC++
         return 0
@@ -240,7 +283,9 @@ export class Cpu {
         this.Accumulator = result
     }
     AND() {
-        throw new Error("Not implemented")
+        this.Accumulator &= this.operatingValue
+        this.zeroFlag = this.Accumulator === 0 ? 1 : 0
+        this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     ASL() {
         throw new Error("Not implemented")
