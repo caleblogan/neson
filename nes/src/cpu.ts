@@ -31,7 +31,8 @@ export class Cpu {
     overflowFlag: number = 0
     negativeFlag: number = 0
 
-    // Current Instruction
+    // Current Instruction being executed
+    // These instructions are useful for debugging and will most likely be faster than passing around objects
     opcode: number = 0
     operatingAddress: number = 0
     operatingValue: number = 0
@@ -45,6 +46,7 @@ export class Cpu {
 
     reset() {
         this.PC = 0x0000 // TODO: lookup start address
+        // TODO: thise requires many more things such as setting cycles, flags, etc.
     }
 
     read(address: number) {
@@ -122,13 +124,23 @@ export class Cpu {
         throw new Error("Not implemented")
     }
     modeImmediate(): number {
-        throw new Error("Not implemented")
+        this.operatingValue = this.read(this.PC)
+        this.PC++
+        return 0
     }
     modeZeroPage(): number {
-        throw new Error("Not implemented")
+        const offset = this.read(this.PC)
+        this.PC++
+        this.operatingAddress = offset
+        this.operatingValue = this.read(this.operatingAddress)
+        return 0
     }
     modeZeroPageX(): number {
-        throw new Error("Not implemented")
+        const offset = this.read(this.PC)
+        this.PC++
+        this.operatingAddress = (offset + this.X) & 0xFF
+        this.operatingValue = this.read(this.operatingAddress)
+        return 0
     }
     modeZeroPageY(): number {
         throw new Error("Not implemented")
@@ -137,10 +149,23 @@ export class Cpu {
         throw new Error("Not implemented")
     }
     modeAbsolute(): number {
-        throw new Error("Not implemented")
+        const lo = this.read(this.PC)
+        this.PC++
+        const hi = this.read(this.PC)
+        this.PC++
+        this.operatingAddress = (hi << 8) | lo
+        this.operatingValue = this.read(this.operatingAddress)
+        return 0
     }
+    // page bounderies
     modeAbsoluteX(): number {
-        throw new Error("Not implemented")
+        const lo = this.read(this.PC)
+        this.PC++
+        const hi = this.read(this.PC)
+        this.PC++
+        const operand = (hi << 8) | lo
+        this.operatingAddress = operand + this.X
+        return (operand & 0xFF00) !== (this.operatingAddress & 0xFF00) ? 1 : 0
     }
     modeAbsoluteY(): number {
         throw new Error("Not implemented")
