@@ -1,3 +1,5 @@
+const STACK_BOTTOM = 0x0100
+
 export class Cpu {
     // TODO: memory should be a separate class and in the bus
     memory: Uint8Array = new Uint8Array(64 * 1024) // 64KB
@@ -7,7 +9,9 @@ export class Cpu {
     // Pushing bytes to the stack causes the stack pointer to be decremented. Conversely pulling bytes causes it to be incremented.
     // The CPU does not detect if the stack is overflowed by excessive pushing or pulling operations and will most likely result in the program crashing.
     // 8-bit points to the next free location on the stack.
-    SP: number = 0x01FF // stack offset $0100 and $01FF TODO: might be able to have ti point directly to $01FF
+    _SP: number = 0xFF // stack offset $0100 and $01FF TODO: might be able to have ti point directly to $01FF
+    get SP() { return this._SP & 0xFF }
+    set SP(byte: number) { this._SP = byte & 0xFF }
 
     _accumulator: number = 0 // 8-bit
     get Accumulator() { return this._accumulator }
@@ -1074,14 +1078,10 @@ export class Cpu {
         }
     }
     // TODO: check if this is correct for nes; depends on platform/os
-    // TODO: when writing to stack, should it be 0x0100 + SP
     BRK() {
-        this.write(this.SP, this.PC >> 8)
-        this.SP--
-        this.write(this.SP, this.PC & 0xFF)
-        this.SP--
-        this.write(this.SP, this.getFlagsAsByte())
-        this.SP--
+        this.pushStack(this.PC >> 8)
+        this.pushStack(this.PC & 0xFF)
+        this.pushStack(this.getFlagsAsByte())
         this.PC = 0xFFFF // IRQ vector
         this.breakFlag = 1
     }
@@ -1180,14 +1180,10 @@ export class Cpu {
     JMP() {
         this.PC = this.operatingAddress
     }
-    // TODO: maybe check for overflow of stack??
     JSR() {
-        // push to stack this.PC - 1
         const oldAddress = this.PC - 1
-        this.write(this.SP, oldAddress >> 8)
-        this.SP--
-        this.write(this.SP, oldAddress && 0xFF)
-        this.SP--
+        this.pushStack(oldAddress >> 8)
+        this.pushStack(oldAddress && 0xFF)
         this.PC = this.operatingAddress
     }
     LDA() {
@@ -1226,23 +1222,19 @@ export class Cpu {
         this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     PHA() {
-        this.write(this.SP, this.Accumulator)
-        this.SP--
+        this.pushStack(this.Accumulator)
     }
     PHP() {
         const flags = this.getFlagsAsByte()
-        this.write(this.SP, flags)
-        this.SP--
+        this.pushStack(flags)
     }
     PLA() {
-        this.Accumulator = this.read(this.SP)
-        this.SP++
+        this.Accumulator = this.popStack()
         this.zeroFlag = this.Accumulator === 0 ? 1 : 0
         this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     PLP() {
-        const flags = this.read(this.SP)
-        this.SP++
+        const flags = this.popStack()
         this.setFlagsFromByte(flags)
     }
     ROL(targetAccumulator: boolean = false) {
@@ -1274,21 +1266,16 @@ export class Cpu {
         }
     }
     RTI() {
-        const flags = this.read(this.SP)
-        this.SP++
+        const flags = this.popStack()
         this.setFlagsFromByte(flags)
 
-        const loPc = this.read(this.SP)
-        this.SP++
-        const hiPc = this.read(this.SP)
-        this.SP++
+        const loPc = this.popStack()
+        const hiPc = this.popStack()
         this.PC = (hiPc << 8) | loPc
     }
     RTS() {
-        const lo = this.read(this.SP)
-        this.SP++
-        const hi = this.read(this.SP) << 8
-        this.SP++
+        const lo = this.popStack()
+        const hi = this.popStack() << 8
         this.PC = (hi | lo) + 1
     }
     // TODO: !IMPORTANT this is probably wrong i didn't double check overflows etc... copied ADC 
@@ -1365,6 +1352,15 @@ export class Cpu {
         return this.carryFlag << 0 | this.zeroFlag << 1 | this.interruptFlag << 2
             | this.decimalFlag << 3 | this.breakFlag << 4 | this.overflowFlag << 6
             | this.negativeFlag << 7
+    }
+
+    pushStack(byte: number) {
+        this.write(STACK_BOTTOM + this.SP, byte)
+        this.SP--
+    }
+    popStack(): number {
+        this.SP++
+        return this.read(STACK_BOTTOM + this.SP)
     }
 
 }
