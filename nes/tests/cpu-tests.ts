@@ -17,7 +17,7 @@ const startIndex = 1
 for (let i = startIndex; i < 0xff; i++) {
     const opcode = argOpcode ?? i.toString(16).padStart(2, "0")
     const path = `./${platform}/v1/${opcode}.json`;
-    console.log(`RUNNING ${opcode} tests`)
+    console.log(`\n\nRUNNING op 0x${opcode} tests`)
 
 
     const tests = JSON.parse(fs.readFileSync(path).toString())
@@ -74,8 +74,8 @@ function execTst(opcode: string, test: { "name": string, "initial": any, "final"
         console.log(`FAILED Opcode=${opcode} Name=${test["name"]}`)
 
         console.log(
-            `EXPECT PC=${hex(e["pc"])} X=${hex(e["x"])} Y=${hex(e["y"])} A=${hex(e["a"])} SP=${hex(e["s"])} FLAGS=${fbin(e["p"])}`)
-        console.log(`ACTUAL PC=${hex(cpu.PC)} X=${hex(cpu.X)} Y=${hex(cpu.Y)} A=${hex(cpu.Accumulator)} SP=${hex(cpu.SP)} FLAGS=${fbin(cpu.getFlagsAsByte())}`)
+            `EXPECT PC=${hex(e["pc"], 4)} X=${hex(e["x"])} Y=${hex(e["y"])} A=${hex(e["a"])} SP=${hex(e["s"])} FLAGS=${fbin(e["p"])}`)
+        console.log(`ACTUAL PC=${hex(cpu.PC, 4)} X=${hex(cpu.X)} Y=${hex(cpu.Y)} A=${hex(cpu.Accumulator)} SP=${hex(cpu.SP)} FLAGS=${fbin(cpu.getFlagsAsByte())}`)
         console.log(`TST RAM`, (e["ram"] as any[]).map(([_, value]) => value))
         console.log(`CPU RAM`, cpu.readBytes((e["ram"] as any[]).map(([address, _]) => address)))
         throw new Error(`stopped... due to failure`)

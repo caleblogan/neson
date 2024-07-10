@@ -927,6 +927,9 @@ export class Cpu {
         const hi = this.read(this.PC)
         this.PC++
         this.operatingAddress = (hi << 8) | lo
+        console.log(`operatingAddress=${hex(this.operatingAddress)} hi=${hex(hi)} lo=${hex(lo)} hid=${(hi)} lod=${(lo)}`)
+        // [379, 32], [380, 85], [381, 19], [341, 173]
+
         this.operatingValue = this.read(this.operatingAddress)
         return 0
     }
@@ -1207,9 +1210,9 @@ export class Cpu {
         this.PC = this.operatingAddress
     }
     JSR() {
-        const oldAddress = this.PC - 1
+        const oldAddress = (this.PC - 1) & 0xFFFF
         this.pushStack(oldAddress >> 8)
-        this.pushStack(oldAddress && 0xFF)
+        this.pushStack(oldAddress & 0xFF)
         this.PC = this.operatingAddress
     }
     LDA() {
@@ -1261,7 +1264,8 @@ export class Cpu {
         this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
     PLP() {
-        const flags = this.popStack()
+        let flags = this.popStack()
+        flags = flags & ~(1 << 4) // TODO: not sure why? clear break flag
         this.setFlagsFromByte(flags)
     }
     ROL(targetAccumulator: boolean = false) {
@@ -1293,7 +1297,8 @@ export class Cpu {
         }
     }
     RTI() {
-        const flags = this.popStack()
+        let flags = this.popStack()
+        flags = (flags & ~(1 << 4)) & 0xff // TODO: not sure why? clear break flag
         this.setFlagsFromByte(flags)
 
         const loPc = this.popStack()
@@ -1382,7 +1387,6 @@ export class Cpu {
     }
 
     pushStack(byte: number) {
-        console.log(`FLAGS: ${fbin(this.getFlagsAsByte())}`)
         console.log(`pushing ${hex(byte)} to stack at ${(STACK_BOTTOM + this.SP)}`)
         this.write(STACK_BOTTOM + this.SP, byte)
         this.SP--
