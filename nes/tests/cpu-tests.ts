@@ -40,7 +40,7 @@ for (let i = startIndex; i < 0xff; i++) {
 }
 
 function execTst(opcode: string, test: { "name": string, "initial": any, "final": any }) {
-    console.log(`\nRUNNING ${opcode} ${test["name"]}`)
+    console.log(`\nRUNNING ${test["name"]}`)
 
     const cpu = new Cpu();
 
@@ -65,17 +65,17 @@ function execTst(opcode: string, test: { "name": string, "initial": any, "final"
     for (const [address, value] of e["ram"]) {
         if (cpu.read(address) !== value) {
             invalidRam = true
-            // console.log(`INVALID RAM address=${address} expected=${value} actual=${cpu.read(address)}`)
+            console.log(`INVALID RAM address=${address} expected=${value} actual=${cpu.read(address)}`)
         }
     }
     if (invalidRam || cpu.PC !== e["pc"] || cpu.X !== e["x"] || cpu.Y !== e["y"] || cpu.Accumulator !== e["a"]
-        || cpu.SP !== e["s"] || (cpu.getFlagsAsByte() | (1 << 5)) !== e["p"]
+        || cpu.SP !== e["s"] || cpu.getFlagsAsByte() !== e["p"]
     ) {
         console.log(`FAILED Opcode=${opcode} Name=${test["name"]}`)
 
         console.log(
             `EXPECT PC=${hex(e["pc"])} X=${hex(e["x"])} Y=${hex(e["y"])} A=${hex(e["a"])} SP=${hex(e["s"])} FLAGS=${fbin(e["p"])}`)
-        console.log(`ACTUAL PC=${hex(cpu.PC)} X=${hex(cpu.X)} Y=${hex(cpu.Y)} A=${hex(cpu.Accumulator)} SP=${hex(cpu.SP)} FLAGS=${fbin(cpu.getFlagsAsByte() | (1 << 5))}`)
+        console.log(`ACTUAL PC=${hex(cpu.PC)} X=${hex(cpu.X)} Y=${hex(cpu.Y)} A=${hex(cpu.Accumulator)} SP=${hex(cpu.SP)} FLAGS=${fbin(cpu.getFlagsAsByte())}`)
         console.log(`TST RAM`, (e["ram"] as any[]).map(([_, value]) => value))
         console.log(`CPU RAM`, cpu.readBytes((e["ram"] as any[]).map(([address, _]) => address)))
         throw new Error(`stopped... due to failure`)
