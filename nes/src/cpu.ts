@@ -1,4 +1,5 @@
 import { UnknownOpcode } from "./errors"
+import { hex } from "./utils"
 
 const STACK_BOTTOM = 0x0100
 const INTERRUPT_VECTOR_NMI = 0xFFFA
@@ -9,7 +10,9 @@ export class Cpu {
     // TODO: memory should be a separate class and in the bus
     memory: Uint8Array = new Uint8Array(64 * 1024) // 64KB
 
-    PC: number = 0 // 16-bit
+    _PC: number = 0 // 16-bit
+    get PC() { return this._PC }
+    set PC(address: number) { this._PC = address & 0xFFFF }
 
     // Pushing bytes to the stack causes the stack pointer to be decremented. Conversely pulling bytes causes it to be incremented.
     // The CPU does not detect if the stack is overflowed by excessive pushing or pulling operations and will most likely result in the program crashing.
@@ -43,8 +46,12 @@ export class Cpu {
     // Current Instruction being executed
     // These instructions are useful for debugging and will most likely be faster than passing around objects
     opcode: number = 0
-    operatingAddress: number = 0
-    operatingValue: number = 0
+    _operatingAddress: number = 0
+    get operatingAddress() { return this._operatingAddress }
+    set operatingAddress(val: number) { this._operatingAddress = val & 0xFFFF }
+    _operatingValue: number = 0
+    get operatingValue() { return this._operatingValue & 0xFFFF } // TODO: maybe it should be 8-bit
+    set operatingValue(val: number) { this._operatingValue = val & 0xFFFF }
     // number of cycles left for the current instruction;
     // extra cycles are added for page boundary, branch taken & branch take page boundary
     cycles: number = 0
@@ -931,6 +938,9 @@ export class Cpu {
         this.PC++
         const operand = (hi << 8) | lo
         this.operatingAddress = operand + this.X
+        this.operatingValue = this.read(this.operatingAddress)
+
+        console.log(`operand=${hex(operand)} operatingAddress=${hex(this.operatingAddress)} X=${hex(this.X)} hi=${hex(hi)} lo=${hex(lo)}`)
         return (operand & 0xFF00) !== (this.operatingAddress & 0xFF00) ? 1 : 0
     }
     // page boundary
@@ -941,6 +951,7 @@ export class Cpu {
         this.PC++
         const operand = (hi << 8) | lo
         this.operatingAddress = operand + this.Y
+        this.operatingValue = this.read(this.operatingAddress)
         return (operand & 0xFF00) !== (this.operatingAddress & 0xFF00) ? 1 : 0
     }
     modeIndirect(): number {
