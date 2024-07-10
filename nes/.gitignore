@@ -2,3 +2,4 @@ node_modules
 dest
 tests/6502
 tests/nes6502
+roms

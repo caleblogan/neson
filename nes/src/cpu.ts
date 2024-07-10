@@ -1,5 +1,7 @@
+import { Apu } from "./apu"
+import { Cart } from "./carts"
 import { UnknownOpcode } from "./errors"
-import { fbin, hex } from "./utils"
+import { Ppu } from "./ppu"
 
 const STACK_BOTTOM = 0x0100
 const INTERRUPT_VECTOR_NMI = 0xFFFA
@@ -7,8 +9,11 @@ const INTERRUPT_VECTOR_RESET = 0xFFFC
 const INTERRUPT_VECTOR_IRQ = 0xFFFE
 
 export class Cpu {
-    // TODO: memory should be a separate class and in the bus
-    memory: Uint8Array = new Uint8Array(64 * 1024) // 64KB
+    // memory/devices
+    memory: Uint8Array = new Uint8Array(2 * 1024) // 2KB
+    cart: Cart
+    ppu: Ppu
+    apu: Apu
 
     _PC: number = 0 // 16-bit
     get PC() { return this._PC & 0xFFFF }
@@ -34,7 +39,6 @@ export class Cpu {
     set Y(byte: number) { this._Y = byte & 0xFF }
 
     // Flags aka P register
-    // TODO: maybe this should be a bitfield
     carryFlag: number = 0
     zeroFlag: number = 0
     interruptFlag: number = 0
@@ -56,7 +60,11 @@ export class Cpu {
     // extra cycles are added for page boundary, branch taken & branch take page boundary
     cycles: number = 0
 
-    constructor() { }
+    constructor(cart: Cart, ppu: Ppu, apu: Apu) {
+        this.cart = cart
+        this.ppu = ppu
+        this.apu = apu
+    }
 
     powerUp() {
         this.PC = this.read(INTERRUPT_VECTOR_RESET + 1) << 8 | this.read(INTERRUPT_VECTOR_RESET)
@@ -71,19 +79,51 @@ export class Cpu {
         this.interruptFlag = 1
     }
 
-    read(address: number) {
-        return this.memory[address & 0xFFFF]
+    // Psuedo bus architecture. each device (cpu, ppu) is responsible for mapping address to device
+    read(address: number): number {
+        address = address & 0xFFFF
+        if (0x0 <= address && address <= 0x1FFF) {
+            // TODO: maybe bit mask instead of modulo
+            return this.memory[address % 0x0800] // mirroring
+        }
+        else if (0x2000 <= address && address <= 0x3FFF) {
+            return this.ppu.readCpuRegister((address - 0x2000) % 8) // mirroring
+        } else if (0x4000 <= address && address <= 0x4017) {
+            return this.apu.cpuRead(address - 0x4000)
+        } else if (0x4018 <= address && address <= 0x401F) {
+            return this.apu.cpuReadIO(address - 0x4018)
+        } else if (0x4020 <= address && address <= 0xFFFF) {
+            return this.cart.cpuRead(address)
+        }
+        throw new Error(`Invalid address ${address}; this shouldn't happen`)
     }
 
     readBytes(addresses: number[]) {
         return addresses.map((address) => this.read(address))
     }
 
-    write(address: number, value: number) {
+    write(address: number, value: number): void {
         this.memory[address] = value
+        address = address & 0xFFFF
+        if (0x0 <= address && address <= 0x1FFF) {
+            this.memory[address % 0x0800] = value
+        }
+        else if (0x2000 <= address && address <= 0x3FFF) {
+            this.ppu.writeCpuRegister((address - 0x2000) % 8, value) // mirroring
+        } else if (0x4000 <= address && address <= 0x4017) {
+            this.apu.cpuWrite(address - 0x4000, value)
+        } else if (0x4018 <= address && address <= 0x401F) {
+            this.apu.cpuWriteIO(address - 0x4018, value)
+        } else if (0x4020 <= address && address <= 0xFFFF) {
+            this.cart.cpuWrite(address, value)
+        } else {
+            throw new Error(`Invalid address ${address}; this shouldn't happen`)
+        }
     }
 
     // Runs the next instruction which may take multiple cycles to complete.
+    // each device will keep track of their cycles and only execute an instruction/op
+    // when cycles is 0.
     clock(): void {
         if (this.cycles > 0) {
             this.cycles--
@@ -877,7 +917,8 @@ export class Cpu {
     }
 
     // Addressing Modes
-    // If boundary is crossed, return 1
+    // All mode functions - If boundary is crossed, return 1
+
     modeImplicit(): number {
         // Noop -- values are implied
         return 0
@@ -913,7 +954,6 @@ export class Cpu {
         return 0
     }
     modeRelative(): number {
-        // TODO: make sure signed offset -128 to 127 works correctly when using in instructions; 7 bit is 1
         this.operatingValue = this.read(this.PC)
         if (this.operatingValue & 0x80) {
             this.operatingValue |= 0xFFFF_FF00 // sign extend; TODO: I think this should work
@@ -931,7 +971,6 @@ export class Cpu {
         this.operatingValue = this.read(this.operatingAddress)
         return 0
     }
-    // page boundary
     modeAbsoluteX(): number {
         const lo = this.read(this.PC)
         this.PC++
@@ -943,7 +982,6 @@ export class Cpu {
 
         return (operand & 0xFF00) !== (this.operatingAddress & 0xFF00) ? 1 : 0
     }
-    // page boundary
     modeAbsoluteY(): number {
         const lo = this.read(this.PC)
         this.PC++
@@ -968,8 +1006,6 @@ export class Cpu {
         }
         return 0
     }
-    // TODO: double check this; i believe you are supposed to load the address from the zero page and then follow that
-    // to the real address. Not sure if wrap around is correct when reading address from zero page.
     modeIndirectX(): number {
         const instructionValue = this.read(this.PC)
         this.PC++
@@ -1000,8 +1036,6 @@ export class Cpu {
 
         this.carryFlag = result > 0xFF ? 1 : 0
         this.zeroFlag = (result & 0xFF) === 0 ? 1 : 0
-        // TODO: double check this 
-        // My understanding is if A & M have same sign and result has different sign, then overflow
         this.overflowFlag = !(this.Accumulator & 0x80 ^ this.operatingValue & 0x80) && (this.Accumulator & 0x80 ^ result & 0x80) ? 1 : 0
         this.negativeFlag = result & 0x80 ? 1 : 0
 
@@ -1012,7 +1046,6 @@ export class Cpu {
         this.zeroFlag = this.Accumulator === 0 ? 1 : 0
         this.negativeFlag = this.Accumulator & 0x80 ? 1 : 0
     }
-    // TODO: not sure if this is correct
     ASL(targetAccumulator: boolean = false) {
         this.carryFlag = this.operatingValue & 0x80 ? 1 : 0
         let result = (this.operatingValue << 1) & 0xFF
@@ -1284,7 +1317,7 @@ export class Cpu {
         result |= this.carryFlag << 7
 
         this.carryFlag = this.operatingValue & 0x1
-        this.zeroFlag = result === 0 ? 1 : 0 // TDOO: docs say only if A is 0, but i think that is wrong
+        this.zeroFlag = result === 0 ? 1 : 0 // TODO: docs say only if A is 0, but i think that is wrong
         this.negativeFlag = (result & 0x80) ? 1 : 0
 
         if (targetAccumulator) {
