@@ -1,5 +1,5 @@
 import { UnknownOpcode } from "./errors"
-import { hex } from "./utils"
+import { fbin, hex } from "./utils"
 
 const STACK_BOTTOM = 0x0100
 const INTERRUPT_VECTOR_NMI = 0xFFFA
@@ -11,7 +11,7 @@ export class Cpu {
     memory: Uint8Array = new Uint8Array(64 * 1024) // 64KB
 
     _PC: number = 0 // 16-bit
-    get PC() { return this._PC }
+    get PC() { return this._PC & 0xFFFF }
     set PC(address: number) { this._PC = address & 0xFFFF }
 
     // Pushing bytes to the stack causes the stack pointer to be decremented. Conversely pulling bytes causes it to be incremented.
@@ -26,11 +26,11 @@ export class Cpu {
     set Accumulator(byte: number) { this._accumulator = byte & 0xFF }
 
     _X: number = 0 // 8-bit
-    get X() { return this._X }
+    get X() { return this._X & 0xFF }
     set X(byte: number) { this._X = byte & 0xFF }
 
     _Y: number = 0 // 8-bit
-    get Y() { return this._Y }
+    get Y() { return this._Y & 0xFF }
     set Y(byte: number) { this._Y = byte & 0xFF }
 
     // Flags aka P register
@@ -72,7 +72,7 @@ export class Cpu {
     }
 
     read(address: number) {
-        return this.memory[address]
+        return this.memory[address & 0xFFFF]
     }
 
     readBytes(addresses: number[]) {
@@ -1251,7 +1251,8 @@ export class Cpu {
         this.pushStack(this.Accumulator)
     }
     PHP() {
-        const flags = this.getFlagsAsByte()
+        // break flag is set when pushed to stack
+        const flags = this.getFlagsAsByte() | 1 << 4
         this.pushStack(flags)
     }
     PLA() {
@@ -1376,11 +1377,13 @@ export class Cpu {
 
     getFlagsAsByte(): number {
         return this.carryFlag << 0 | this.zeroFlag << 1 | this.interruptFlag << 2
-            | this.decimalFlag << 3 | this.breakFlag << 4 | this.overflowFlag << 6
-            | this.negativeFlag << 7
+            | this.decimalFlag << 3 | this.breakFlag << 4 | 1 << 5
+            | this.overflowFlag << 6 | this.negativeFlag << 7
     }
 
     pushStack(byte: number) {
+        console.log(`FLAGS: ${fbin(this.getFlagsAsByte())}`)
+        console.log(`pushing ${hex(byte)} to stack at ${(STACK_BOTTOM + this.SP)}`)
         this.write(STACK_BOTTOM + this.SP, byte)
         this.SP--
     }
