@@ -16,7 +16,7 @@ if (!platform) {
 const startIndex = 1
 for (let i = startIndex; i < 0xff; i++) {
     const opcode = argOpcode ?? i.toString(16).padStart(2, "0")
-    const path = `./${platform}/v1/${opcode}.json`;
+    const path = `./tests/${platform}/v1/${opcode}.json`;
     console.log(`\n\nRUNNING op 0x${opcode} tests`)
 
 

@@ -927,8 +927,6 @@ export class Cpu {
         const hi = this.read(this.PC)
         this.PC++
         this.operatingAddress = (hi << 8) | lo
-        console.log(`operatingAddress=${hex(this.operatingAddress)} hi=${hex(hi)} lo=${hex(lo)} hid=${(hi)} lod=${(lo)}`)
-        // [379, 32], [380, 85], [381, 19], [341, 173]
 
         this.operatingValue = this.read(this.operatingAddress)
         return 0
@@ -943,7 +941,6 @@ export class Cpu {
         this.operatingAddress = operand + this.X
         this.operatingValue = this.read(this.operatingAddress)
 
-        console.log(`operand=${hex(operand)} operatingAddress=${hex(this.operatingAddress)} X=${hex(this.X)} hi=${hex(hi)} lo=${hex(lo)}`)
         return (operand & 0xFF00) !== (this.operatingAddress & 0xFF00) ? 1 : 0
     }
     // page boundary
@@ -1387,7 +1384,6 @@ export class Cpu {
     }
 
     pushStack(byte: number) {
-        console.log(`pushing ${hex(byte)} to stack at ${(STACK_BOTTOM + this.SP)}`)
         this.write(STACK_BOTTOM + this.SP, byte)
         this.SP--
     }
