@@ -1310,9 +1310,9 @@ export class Cpu {
         const hi = this.popStack() << 8
         this.PC = (hi | lo) + 1
     }
-    // TODO: !IMPORTANT this is probably wrong i didn't double check overflows etc... copied ADC 
     SBC() {
-        let result = this.Accumulator - this.operatingValue - 1 + this.carryFlag
+        this.operatingValue = this.operatingValue ^ 0xFF
+        let result = this.Accumulator + this.operatingValue + this.carryFlag
 
         this.carryFlag = result > 0xFF ? 1 : 0
         this.zeroFlag = (result & 0xFF) === 0 ? 1 : 0
