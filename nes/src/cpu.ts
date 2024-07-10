@@ -1,3 +1,5 @@
+import { UnknownOpcode } from "./errors"
+
 const STACK_BOTTOM = 0x0100
 const INTERRUPT_VECTOR_NMI = 0xFFFA
 const INTERRUPT_VECTOR_RESET = 0xFFFC
@@ -12,12 +14,12 @@ export class Cpu {
     // Pushing bytes to the stack causes the stack pointer to be decremented. Conversely pulling bytes causes it to be incremented.
     // The CPU does not detect if the stack is overflowed by excessive pushing or pulling operations and will most likely result in the program crashing.
     // 8-bit points to the next free location on the stack.
-    _SP: number = 0xFF // stack offset $0100 and $01FF TODO: might be able to have ti point directly to $01FF
+    _SP: number = 0xFF // aka S register
     get SP() { return this._SP & 0xFF }
     set SP(byte: number) { this._SP = byte & 0xFF }
 
     _accumulator: number = 0 // 8-bit
-    get Accumulator() { return this._accumulator }
+    get Accumulator() { return this._accumulator & 0xFF }
     set Accumulator(byte: number) { this._accumulator = byte & 0xFF }
 
     _X: number = 0 // 8-bit
@@ -28,7 +30,7 @@ export class Cpu {
     get Y() { return this._Y }
     set Y(byte: number) { this._Y = byte & 0xFF }
 
-    // Flags
+    // Flags aka P register
     // TODO: maybe this should be a bitfield
     carryFlag: number = 0
     zeroFlag: number = 0
@@ -47,22 +49,27 @@ export class Cpu {
     // extra cycles are added for page boundary, branch taken & branch take page boundary
     cycles: number = 0
 
-    // Don't call reset. Power state is different than reset state
-    constructor() {
-        this.PC = 0xFFFC // (this.read(0xFFFD) << 8) | this.read(0xFFFC)
+    constructor() { }
+
+    powerUp() {
+        this.PC = this.read(INTERRUPT_VECTOR_RESET + 1) << 8 | this.read(INTERRUPT_VECTOR_RESET)
         this.SP = 0xFD
         this.interruptFlag = 1
     }
 
     // TODO: figure out how to handle interrupts
     reset() {
-        this.PC = 0xFFFC
+        this.PC = this.read(INTERRUPT_VECTOR_RESET + 1) << 8 | this.read(INTERRUPT_VECTOR_RESET)
         this.SP -= 3
         this.interruptFlag = 1
     }
 
     read(address: number) {
         return this.memory[address]
+    }
+
+    readBytes(addresses: number[]) {
+        return addresses.map((address) => this.read(address))
     }
 
     write(address: number, value: number) {
@@ -857,7 +864,7 @@ export class Cpu {
                 this.cycles = 2
                 break
             default:
-                throw new Error(`Unknown opcode: ${this.opcode}`)
+                throw new UnknownOpcode(this.opcode)
         }
         this.cycles--
     }
