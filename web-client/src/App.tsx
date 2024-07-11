@@ -1,3 +1,6 @@
+import { useContext } from "react"
+import { NesContext } from "./context"
+
 function Screen() {
   return <div>
     <canvas id="screen" width={283 * 2} height={242 * 2}

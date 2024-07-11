@@ -2,14 +2,14 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { Cart0 } from "../../nes/src/carts.ts"
-import { Ppu } from "../../nes/src/ppu.ts"
-import { Apu } from "../../nes/src/apu.ts"
-import { Cpu } from "../../nes/src/cpu.ts"
+import { Cart0 } from "nes/src/carts.ts"
+import { Ppu } from "nes/src/ppu.ts"
+import { Apu } from "nes/src/apu.ts"
+import { Cpu } from "nes/src/cpu.ts"
 import { NesContext } from './context.ts'
 
 
-const cart = new Cart0(new Uint8Array())
+const cart = new Cart0(new Uint8Array(), new Uint8Array())
 const ppu = new Ppu(cart)
 const apu = new Apu()
 const cpu = new Cpu(cart, ppu, apu)
