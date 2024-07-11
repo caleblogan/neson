@@ -2,6 +2,9 @@ import * as fs from "fs"
 import { Cpu } from "../src/cpu";
 import { UnknownOpcode } from "../src/errors";
 import { fbin, hex } from "../src/utils";
+import { loadCart } from "../src/carts";
+import { Ppu } from "../src/ppu";
+import { Apu } from "../src/apu";
 
 // Test runner for the CPU tests 6502/ and nes6502/ folders
 const platform = process.argv[2]
@@ -42,7 +45,10 @@ for (let i = startIndex; i < 0xff; i++) {
 function execTst(opcode: string, test: { "name": string, "initial": any, "final": any }) {
     console.log(`\nRUNNING ${test["name"]}`)
 
-    const cpu = new Cpu();
+    const cart = loadCart("nestest.nes")
+    const ppu = new Ppu(cart)
+    const apu = new Apu()
+    const cpu = new Cpu(cart, ppu, apu);
 
     // SET
     const initial = test["initial"]

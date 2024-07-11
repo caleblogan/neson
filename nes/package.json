@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "clean": "rm -rf dest/* tests/*.js",
     "build": "npx tsc --watch",
     "dev": "npx tsx watch src/main.ts",
     "devNoWatch": "npx tsx src/main.ts",

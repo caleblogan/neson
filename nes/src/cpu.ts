@@ -86,7 +86,7 @@ export class Cpu {
         this.pushStack(this.PC >> 8)
         this.pushStack(this.PC & 0xFF)
         this.interruptFlag = 1
-        this.breakFlag = 0
+        // this.breakFlag = 0
         this.pushStack(this.getFlagsAsByte())
 
         this.PC = this.read(INTERRUPT_VECTOR_NMI + 1) << 8 | this.read(INTERRUPT_VECTOR_NMI)
@@ -98,7 +98,7 @@ export class Cpu {
             this.pushStack(this.PC & 0xFF)
 
             this.interruptFlag = 1
-            this.breakFlag = 0
+            // this.breakFlag = 0
             this.pushStack(this.getFlagsAsByte())
             this.PC = this.read(INTERRUPT_VECTOR_IRQ + 1) << 8 | this.read(INTERRUPT_VECTOR_IRQ)
             this.cycles = 7
@@ -936,7 +936,7 @@ export class Cpu {
                 this.cycles = 2
                 break
             default:
-                throw new UnknownOpcode(this.opcode)
+                console.warn(`Unkown opcode ${this.opcode}`)
         }
         this.cycles--
     }

@@ -59,7 +59,7 @@ export interface Cart {
     ppuWrite(busAddress: number, value: number): void
 }
 
-class Cart0 implements Cart {
+export class Cart0 implements Cart {
     prgRam: Uint8Array = new Uint8Array(8192)
     prgRom: Uint8Array
     chrRom: Uint8Array
@@ -75,8 +75,7 @@ class Cart0 implements Cart {
     cpuRead(busAddress: number): number {
         // CPU $6000-$7FFF: Family Basic only: PRG RAM, mirrored as necessary to fill entire 8 KiB window, write protectable with an external switch
         if (busAddress >= 0x6000 && busAddress <= 0x7FFF) {
-            // return this.prgRam[busAddress - 0x6000]
-            throw new Error(`PRG RAM not implemented`)
+            return this.prgRam[busAddress - 0x6000]
         }
         // CPU $8000-$FFFF: 16k or 32k of ROM mirrored.
         else if (busAddress >= 0x8000 && busAddress <= 0xFFFF) {
