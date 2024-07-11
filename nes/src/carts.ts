@@ -58,21 +58,42 @@ export interface Cart {
 }
 
 class Cart0 implements Cart {
-    // CPU $6000-$7FFF: Family Basic only: PRG RAM, mirrored as necessary to fill entire 8 KiB window, write protectable with an external switch
-    // CPU $8000-$BFFF: First 16 KB of ROM.
-    // CPU $C000-$FFFF: Last 16 KB of ROM (NROM-256) or mirror of $8000-$BFFF (NROM-128).
-    constructor() { }
-    cpuRead(busAddress: number): number {
-        throw new Error("Method not implemented.")
+    prgRam: Uint8Array = new Uint8Array(8192)
+    prgRom: Uint8Array
+    chrRom: Uint8Array
 
+    get bankCount(): number {
+        return this.prgRom.length / (16 * 1024)
+    }
+
+    constructor(prgRom: Buffer, chrRom: Buffer) {
+        this.prgRom = new Uint8Array(prgRom)
+        this.chrRom = new Uint8Array(chrRom)
+    }
+    cpuRead(busAddress: number): number {
+        // CPU $6000-$7FFF: Family Basic only: PRG RAM, mirrored as necessary to fill entire 8 KiB window, write protectable with an external switch
+        if (busAddress >= 0x6000 && busAddress <= 0x7FFF) {
+            // return this.prgRam[busAddress - 0x6000]
+            throw new Error(`PRG RAM not implemented`)
+        }
+        // CPU $8000-$FFFF: 16k or 32k of ROM mirrored.
+        else if (busAddress >= 0x8000 && busAddress <= 0xFFFF) {
+            let addr = (busAddress - 0x8000) % this.prgRom.length
+            return this.prgRom[addr]
+        }
+        throw new Error(`Invalid bus address read ${busAddress}`)
     }
     cpuWrite(busAddress: number, value: number): void {
-        throw new Error("Method not implemented.")
-    }
-
-    // maps bus address to internal address
-    mapper(busAddress: number): number {
-        return busAddress
+        if (busAddress >= 0x6000 && busAddress <= 0x7FFF) {
+            // this.prgRam[busAddress - 0x6000] = value
+            throw new Error(`PRG RAM not implemented`)
+        }
+        else if (busAddress >= 0x8000 && busAddress <= 0xFFFF) {
+            // let addr = (busAddress - 0x8000) % this.prgRom.length
+            // this.prgRom[addr] = value
+            throw new Error(`Cannot write to ROM`)
+        }
+        throw new Error(`Invalid bus address write ${busAddress}`)
     }
 }
 
@@ -93,7 +114,7 @@ export function loadCart(cartFile: string): Cart {
     console.log(`MAPPER ${header.mapper}`)
     switch (header.mapper) {
         case 0:
-            const cart = new Cart0()
+            const cart = new Cart0(prgRom, chrRom)
             console.log(cart)
             return cart
         default:

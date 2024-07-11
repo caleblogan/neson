@@ -83,7 +83,6 @@ export class Cpu {
     read(address: number): number {
         address = address & 0xFFFF
         if (0x0 <= address && address <= 0x1FFF) {
-            // TODO: maybe bit mask instead of modulo
             return this.memory[address % 0x0800] // mirroring
         }
         else if (0x2000 <= address && address <= 0x3FFF) {
@@ -1426,5 +1425,3 @@ export class Cpu {
     }
 
 }
-
-

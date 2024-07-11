@@ -6,6 +6,7 @@
   "scripts": {
     "build": "npx tsc --watch",
     "dev": "npx tsx watch src/main.ts",
+    "devNoWatch": "npx tsx src/main.ts",
     "test-cpu": "npx tsx tests/cpu-tests.ts nes6502"
   },
   "author": "",
