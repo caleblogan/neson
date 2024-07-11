@@ -6,20 +6,15 @@ import { hex } from './utils'
 
 console.log(`hi from NES`)
 const cart = carts.loadCart("../roms/nestest.nes")
-const ppu = new Ppu()
+const ppu = new Ppu(cart)
 const apu = new Apu()
 const cpu = new Cpu(cart, ppu, apu)
+cpu.powerUp()
 
 console.log(cpu)
 
-console.log(`cart rom ${(cart.cpuRead(0x8000))}`)
-console.log(`cart rom ${(cart.cpuRead(0x800c))}`)
-console.log(`cart rom ${(cart.cpuRead(0x800d))}`)
 
-cpu.powerUp()
-
-
-let stepMode = true
+let stepMode = false
 
 async function keypress(): Promise<string> {
     process.stdin.setRawMode(true)
@@ -31,7 +26,10 @@ async function keypress(): Promise<string> {
 
 async function run() {
     for (let i = 0; i < 1000000000000; i++) {
-        cpu.clock()
+        if (i % 3) {
+            cpu.clock()
+        }
+        ppu.clock()
         console.log(`clock(${hex(i, 8)}) PC=${hex(cpu.PC)} A=${hex(cpu.Accumulator)} X=${hex(cpu.X)} Y=${hex(cpu.Y)} P=${hex(cpu.getFlagsAsByte())} SP=${hex(cpu.SP)}`)
         if (stepMode && cpu.cycles === 0) {
             const key = await keypress()

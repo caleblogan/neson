@@ -55,6 +55,8 @@ class INesHeader {
 export interface Cart {
     cpuRead(busAddress: number): number
     cpuWrite(busAddress: number, value: number): void
+    ppuRead(busAddress: number): number
+    ppuWrite(busAddress: number, value: number): void
 }
 
 class Cart0 implements Cart {
@@ -94,6 +96,17 @@ class Cart0 implements Cart {
             throw new Error(`Cannot write to ROM`)
         }
         throw new Error(`Invalid bus address write ${busAddress}`)
+    }
+
+    ppuRead(busAddress: number): number {
+        // pattern tables 1 & 2
+        if (busAddress >= 0x0000 && busAddress <= 0x1FFF) {
+            return this.chrRom[busAddress]
+        }
+        throw new Error(`Invalid bus address read ${busAddress}`)
+    }
+    ppuWrite(busAddress: number, value: number): void {
+        throw new Error("Ppu should not be writing to cart rom")
     }
 }
 
