@@ -32,10 +32,10 @@ export class Ppu {
     readCpuRegister(reg: number) {
         switch (reg) {
             case 0:
-
                 return 0
             default:
-                throw new Error(`PPU register ${reg} not implemented`)
+                // throw new Error(`PPU register ${reg} not implemented`)
+                return 0
         }
     }
     writeCpuRegister(reg: number, value: number) {
@@ -43,7 +43,8 @@ export class Ppu {
             case 0:
                 break
             default:
-                throw new Error(`PPU register ${reg} not implemented`)
+                // throw new Error(`PPU register ${reg} not implemented`)
+                return 0
         }
     }
 
