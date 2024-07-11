@@ -3,10 +3,12 @@ import { Cart } from "./carts"
 export class Ppu {
     cart: Cart
     cpuRegisters: Uint8Array = new Uint8Array(8)
+
     // TODO: can be remappad by cart
     // 4 name tables of 1024 bytes each
     nameTables: Uint8Array = new Uint8Array(2 * 2048)
     palletes: Uint8Array = new Uint8Array(32)
+    oam: Uint8Array = new Uint8Array(256)
 
     cycle: number = 0 // x
     scanline: number = 0 // y
@@ -28,17 +30,20 @@ export class Ppu {
     }
 
     readCpuRegister(reg: number) {
-        reg = reg % 8
-        let result = 0
-        for (let i = 0; i < 8; i++) {
-            result |= this.cpuRegisters[i] << i
+        switch (reg) {
+            case 0:
+
+                return 0
+            default:
+                throw new Error(`PPU register ${reg} not implemented`)
         }
-        return result
     }
     writeCpuRegister(reg: number, value: number) {
-        reg = reg % 8
-        for (let i = 0; i < 8; i++) {
-            this.cpuRegisters[i] = (value >> i) & 1
+        switch (reg) {
+            case 0:
+                break
+            default:
+                throw new Error(`PPU register ${reg} not implemented`)
         }
     }
 

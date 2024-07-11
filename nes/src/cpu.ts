@@ -72,11 +72,37 @@ export class Cpu {
         this.interruptFlag = 1
     }
 
-    // TODO: figure out how to handle interrupts
     reset() {
         this.PC = this.read(INTERRUPT_VECTOR_RESET + 1) << 8 | this.read(INTERRUPT_VECTOR_RESET)
-        this.SP -= 3
+        this.SP = 0xFD
         this.interruptFlag = 1
+
+        this.operatingAddress = 0
+        this.operatingValue = 0
+
+        this.cycles = 7
+    }
+    nmi() {
+        this.pushStack(this.PC >> 8)
+        this.pushStack(this.PC & 0xFF)
+        this.interruptFlag = 1
+        this.breakFlag = 0
+        this.pushStack(this.getFlagsAsByte())
+
+        this.PC = this.read(INTERRUPT_VECTOR_NMI + 1) << 8 | this.read(INTERRUPT_VECTOR_NMI)
+        this.cycles = 7
+    }
+    irq() {
+        if (this.interruptFlag === 0) {
+            this.pushStack(this.PC >> 8)
+            this.pushStack(this.PC & 0xFF)
+
+            this.interruptFlag = 1
+            this.breakFlag = 0
+            this.pushStack(this.getFlagsAsByte())
+            this.PC = this.read(INTERRUPT_VECTOR_IRQ + 1) << 8 | this.read(INTERRUPT_VECTOR_IRQ)
+            this.cycles = 7
+        }
     }
 
     // Psuedo bus architecture. each device (cpu, ppu) is responsible for mapping address to device
