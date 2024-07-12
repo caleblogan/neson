@@ -31,10 +31,10 @@ export class Ppu {
     // REGISTERS
 
     regControl: number = 0
-    get baseNametableAddress() { return this.regControl & 0x3 }
-    get vramAddresssIncrement() { return (this.regControl & 0x4) === 0 ? 1 : 32 }
-    get spritePatternTableAddress() { return (this.regControl & 0x8) === 0 ? 0 : 0x1000 }
-    get bgPatternTableAddress() { return (this.regControl & 0x10) === 0 ? 0 : 0x1000 }
+    get baseNametableAddress() { return (this.regControl & 0x3) ? 1 : 0 }
+    get vramAddresssIncrement() { return (this.regControl & 0x4) ? 32 : 1 }
+    get spritePatternTableAddress() { return (this.regControl & 0x8) === 0 ? 0 : 1 }
+    get bgPatternTableAddress() { return (this.regControl & 0x10) === 0 ? 0 : 1 }
     get spriteSize() { return (this.regControl & 0x20) === 0 ? 0 : 1 }
     get ppuMasterSlave() { return (this.regControl & 0x40) === 0 ? 0 : 1 }
     get generateNmi() { return (this.regControl & 0x80) === 0 ? 0 : 1 }
@@ -50,9 +50,9 @@ export class Ppu {
     get emphasizeBlue() { return (this.regMask & 0x80) === 0 ? 0 : 1 }
 
     regStatus: number = 0
-    get spriteOverflow() { return (this.regStatus & 0x20) >> 5 }
-    get spriteZeroHit() { return (this.regStatus & 0x40) >> 6 }
-    get verticalBlank() { return (this.regStatus & 0x80) >> 7 }
+    get spriteOverflow() { return (this.regStatus & 0x20) ? 1 : 0 }
+    get spriteZeroHit() { return (this.regStatus & 0x40) ? 1 : 0 }
+    get verticalBlank() { return (this.regStatus & 0x80) ? 1 : 0 }
     set verticalBlank(value: number) { this.regStatus = !value ? (this.regStatus & ~0x80) & 0xff : this.regStatus | 0x80 }
 
     regOamAddress: number = 0
@@ -90,8 +90,9 @@ export class Ppu {
             const tileId = this.read(0x2000 + Math.floor(this.scanline / 8) * 32 + Math.floor(this.cycle / 8))
 
             // get lo and hi byte from  chr ram
-            const loChr = this.read((0x0 + 16 * tileId) + this.scanline % 8)
-            const hiChr = this.read((0x0 + 16 * tileId) + this.scanline % 8 + 8)
+            const patternTable = this.bgPatternTableAddress ? 0x1000 : 0
+            const loChr = this.read(patternTable + (0x0 + 16 * tileId) + this.scanline % 8)
+            const hiChr = this.read(patternTable + (0x0 + 16 * tileId) + this.scanline % 8 + 8)
 
             // console.log(`tileId: ${hex(tileId, 2)} loChr: ${hex(loChr, 2)} hiChr: ${hex(hiChr, 2)}`)
 
@@ -121,18 +122,38 @@ export class Ppu {
     }
 
     // TODO: move this bag out of ppu
+    // TODO: this buffering may cause artifacts
+    // buffer = new Array(24).fill(0)
+    // bufferIndex = 0
+    ctx = canvas?.getContext("2d")
     draw(x: number, y: number, color: string) {
+        // this.buffer[this.bufferIndex++] = x
+        // this.buffer[this.bufferIndex++] = y
+        // this.buffer[this.bufferIndex++] = color
+        // if (this.bufferIndex < 24) {
+        //     return
+        // }
         if (!canvas) {
             canvas = document.getElementById("screen") as HTMLCanvasElement
             return
         }
-        const ctx = canvas.getContext("2d")
-        if (!ctx) {
-            return
+        if (!this.ctx) {
+            this.ctx = canvas.getContext("2d")
+            if (!this.ctx) {
+                return
+            }
         }
+
         const size = 2
-        ctx.fillStyle = color
-        ctx.fillRect(x * size, y * size, size, size)
+        this.ctx.fillStyle = color
+        this.ctx.fillRect(x * size - 1, y * size, size, size)
+
+        // for (let i = 0; i < 8; i++) {
+        //     const size = 2
+        //     this.ctx.fillStyle = this.buffer[i * 3 + 2]
+        //     this.ctx.fillRect(this.buffer[i * 3] * size, this.buffer[i * 3 + 1] * size, size, size)
+        // }
+        // this.bufferIndex = 0
     }
 
     readCpuRegister(reg: number) {
@@ -206,7 +227,7 @@ export class Ppu {
                 return
             case 7:
                 this.write(this.regVramAddress, value)
-                this.regVramAddress++
+                this.regVramAddress += this.vramAddresssIncrement
                 return
             default:
                 throw new Error(`PPU register ${reg} not implemented`)

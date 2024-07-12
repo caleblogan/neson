@@ -44,7 +44,11 @@ const nesDefault = {
  * [*] ppu viewer
  * [*] display nametable (vram)
  * [*] add ppu registers
- * [] fix ppu read/write registers
+ * [*] fix ppu read/write registers
+ * [] attribute table
+ * [] sprites
+ * [] controller
+ * [] another mapper?
  */
 
 
@@ -86,7 +90,7 @@ function App() {
 
   useEffect(() => {
     let systemClock = 0
-    const BATCH_CYCLES = 2 ** 12
+    const BATCH_CYCLES = 2 ** 14
     const id = setInterval(function ticker() {
       for (let i = 0; i < BATCH_CYCLES; i++) {
         if (nes.ppu.nmi) {
@@ -103,12 +107,12 @@ function App() {
     return () => clearInterval(id)
   }, [])
 
-  // useEffect(() => {
-  //   const id = setInterval(function tk() {
-  //     setNes({ ...nes })
-  //   }, 500)
-  //   return () => clearInterval(id)
-  // }, [])
+  useEffect(() => {
+    const id = setInterval(function tk() {
+      setNes({ ...nes })
+    }, 1000)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <div className="p-4 pt-1 font-mono">
