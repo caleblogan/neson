@@ -116,6 +116,20 @@ export class Cpu {
             return this.ppu.readCpuRegister((address - 0x2000) % 8) // mirroring
         } else if (address === 0x4014) {
             return this.ppu.readOam(address)
+        } else if (address === 0x4016) {
+            console.log(`READ joy1Register=${this.joy1InternalReg}`)
+            if (this.joy1Counter < 2) { return 0 }
+            if (this.joy1Counter > 10) {
+                this.joy1Counter = 0
+                return 0
+            }
+            const bit = (this.joy1InternalReg >> (9 - this.joy1Counter)) & 1
+
+            this.joy1Counter++
+            if (this.joy1Counter >= 10) {
+                this.joy1Counter = 0
+            }
+            return bit
         } else if (0x4000 <= address && address <= 0x4017) {
             return this.apu.cpuRead(address - 0x4000)
         } else if (0x4018 <= address && address <= 0x401F) {
@@ -130,6 +144,10 @@ export class Cpu {
         return addresses.map((address) => this.read(address))
     }
 
+    // joy1Public: number = 0
+    joy1BufferReg: number = 0
+    joy1InternalReg: number = 0
+    joy1Counter: number = 0
     write(address: number, value: number): void {
         this.memory[address] = value
         address = address & 0xFFFF
@@ -138,6 +156,15 @@ export class Cpu {
         }
         else if (0x2000 <= address && address <= 0x3FFF) {
             this.ppu.writeCpuRegister((address - 0x2000) % 8, value) // mirroring
+        } else if (address === 0x4016) {
+            if (this.joy1Counter > 1) return
+            else if (this.joy1Counter === 0) this.joy1Counter++
+            else if (this.joy1Counter === 1) {
+                this.joy1Counter++
+                this.joy1InternalReg = this.joy1BufferReg
+                this.joy1BufferReg = 0
+            }
+            // console.log(`writing joy1Register=${this.joy1Register} value=${value}`)
         } else if (0x4000 <= address && address <= 0x4017) {
             this.apu.cpuWrite(address - 0x4000, value)
         } else if (address === 0x4014) {

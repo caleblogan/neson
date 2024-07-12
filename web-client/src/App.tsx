@@ -65,13 +65,6 @@ function App() {
   const [palletteIndex, setPalletteIndex] = useState(0)
 
   useEffect(() => {
-    // TODO: testing
-    // ppu.write(0x3f00, 0x21)
-    // ppu.write(0x3f01, 0x16)
-    // ppu.write(0x3f02, 0x06)
-    // ppu.write(0x3f03, 0x02)
-    // ppu.write(0x2000, 0x11)
-    // ppu.write(0x2001, 0x12)
     setNes({ ...nes })
     function handler(e: KeyboardEvent) {
       if (e.key === "n") {
@@ -81,6 +74,22 @@ function App() {
       } else if (e.key === "p") {
         setPalletteIndex(prev => (prev + 1) % 8)
         setNes({ ...nes })
+      } else if (e.key === "w" || e.key === "ArrowUp") {
+        cpu.joy1BufferReg |= 0x8
+      } else if (e.key === "s" || e.key === "ArrowDown") {
+        cpu.joy1BufferReg |= 0x4
+      } else if (e.key === "a" || e.key === "ArrowLeft") {
+        cpu.joy1BufferReg |= 0x2
+      } else if (e.key === "d" || e.key === "ArrowRight") {
+        cpu.joy1BufferReg |= 0x1
+      } else if (e.key === "Enter") { // Enter is Start
+        cpu.joy1BufferReg |= 0x10
+      } else if (e.key === "t") { // t is Select
+        cpu.joy1BufferReg |= 0x20
+      } else if (e.key === "e") { // e is B
+        cpu.joy1BufferReg |= 0x40
+      } else if (e.key === "r") { // r is A
+        cpu.joy1BufferReg |= 0x80
       }
     }
 
