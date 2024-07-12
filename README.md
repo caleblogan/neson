@@ -5,12 +5,12 @@
 - [*] rom loading
 - [*] ui cpu dubugging
 - [*] ui pattern memory viewer 
-- [] ui pallette memory viewer/selector
-- [] ppu display nametables bg (rough)
-- [] ppu ...dislay
+- [*] ui pallette memory viewer/selector
+- [*] ppu display nametables bg (rough) (loads nestest & donkey kong bg patterns)
+- [] controllers
+- [] attribute table
 - [] ppu scrolling w/ loopy registers
 - [] ppu oam
-- [] input
 - [] apu auido
 
 
