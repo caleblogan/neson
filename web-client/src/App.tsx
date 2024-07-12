@@ -97,9 +97,9 @@ function App() {
     const id = setInterval(function ticker() {
       for (let i = 0; i < BATCH_CYCLES; i++) {
         if (i % 3 === 0) {
-          nes.cpu.clock()
+          // nes.cpu.clock()
         }
-        nes.ppu.clock()
+        // nes.ppu.clock()
       }
     }, 30)
     return () => clearInterval(id)

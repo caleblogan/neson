@@ -113,6 +113,8 @@ export class Cpu {
         }
         else if (0x2000 <= address && address <= 0x3FFF) {
             return this.ppu.readCpuRegister((address - 0x2000) % 8) // mirroring
+        } else if (address === 0x4014) {
+            this.ppu.readOam(address)
         } else if (0x4000 <= address && address <= 0x4017) {
             return this.apu.cpuRead(address - 0x4000)
         } else if (0x4018 <= address && address <= 0x401F) {
@@ -137,6 +139,8 @@ export class Cpu {
             this.ppu.writeCpuRegister((address - 0x2000) % 8, value) // mirroring
         } else if (0x4000 <= address && address <= 0x4017) {
             this.apu.cpuWrite(address - 0x4000, value)
+        } else if (address === 0x4014) {
+            this.ppu.writeOam(address, value)
         } else if (0x4018 <= address && address <= 0x401F) {
             this.apu.cpuWriteIO(address - 0x4018, value)
         } else if (0x4020 <= address && address <= 0xFFFF) {
