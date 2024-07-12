@@ -1,4 +1,5 @@
 import { Cart } from "./carts"
+import { hex } from "./utils"
 
 export class Ppu {
     cart: Cart
@@ -61,10 +62,12 @@ export class Ppu {
         }
         // $3F00-$3F1F	$0020	Palette RAM indexes	Internal to PPU
         // $3F20-$3FFF	$00E0	Mirrors of $3F00-$3F1F	Internal to PPU
+        // each color takes up one byte; 32 colors; 4 per pallette; 4 bg pallette; 4 fg pallettes; 2*4*4=32 bytes
         else if (0x3F00 <= busAddress && busAddress <= 0x3F1F) {
-            return this.palletes[(busAddress - 0x3F00) % this.palletes.length]
+            const addr = busAddress & 0xFF
+            return this.palletes[(addr % 4 === 0 ? 0 : addr) & 0x1f]
         }
-        throw new Error("Method not implemented.")
+        throw new Error(`Attempting to read ppu at invalid address of ${hex(busAddress, 4)}`)
     }
     write(busAddress: number, value: number) {
         if (0x0 <= busAddress && busAddress <= 0x1FFF) {
@@ -73,10 +76,13 @@ export class Ppu {
         else if (0x2000 <= busAddress && busAddress <= 0x2FFF) {
             this.nameTables[busAddress - 0x2000] = value
         }
+        // TODO: mirroring on write could cause some funky issues ??
         else if (0x3F00 <= busAddress && busAddress <= 0x3F1F) {
-            this.palletes[(busAddress - 0x3F00) % this.palletes.length] = value
+            const addr = busAddress & 0xFF
+            this.palletes[(addr % 4 === 0 ? 0 : addr) & 0x1f] = value
+        } else {
+            throw new Error("Method not implemented.")
         }
-        throw new Error("Method not implemented.")
     }
 
 }

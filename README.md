@@ -1,4 +1,17 @@
-### nes emulator
+### Nes Emulator
+
+## Progress
+- [*] cpu (passess all tests from https://github.com/SingleStepTests/ProcessorTests/tree/main/nes6502) 
+- [*] rom loading
+- [*] ui cpu dubugging
+- [*] ui pattern memory viewer 
+- [] ui pallette memory viewer/selector
+- [] ppu display nametables bg (rough)
+- [] ppu ...dislay
+- [] ppu scrolling w/ loopy registers
+- [] ppu oam
+- [] input
+- [] apu auido
 
 
 ## References

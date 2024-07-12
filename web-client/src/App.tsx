@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react"
-import { hex } from "nes/src/utils"
 import { Cart0 } from "nes/src/carts.ts"
 import { Ppu } from "nes/src/ppu.ts"
 import { Apu } from "nes/src/apu.ts"
 import { Cpu } from "nes/src/cpu.ts"
-// import { rom } from "./assets/nestest.ts"
-import { rom } from "./assets/roms/donkey-kong.nes.ts"
+import { rom } from "./assets/nestest.ts"
+// import { rom } from "./assets/roms/donkey-kong.nes.ts"
+import { PatternDebugScreen } from "./debugger/PatternDebugScreen.tsx"
+import { CpuDebugScreen } from "./debugger/CpuDebugScreen.tsx"
+import { MemoryDebugScreen } from "./debugger/MemoryDebugScreen.tsx"
+import { PalletteViewer } from "./debugger/PalletteViewer.tsx"
 
 // TODO: hardcoded for testing
 const romBytes = rom.slice(16)
@@ -32,16 +35,15 @@ const nesDefault = {
  * [*] display memory
  * [*] display pattern tables
  * [*] add step forward control (keydown)
- * [ ] display pallette
- * [ ] draw pattern table using pallette
- * [ ] draw random pixels to screen each clock tick (cycle)
+ * [*] pallette colors
+ * [*] display pallette
+ * [*] draw pattern table using pallette
  * [ ] display nametable (vram)
  */
 
+type Nes = { cpu: Cpu, ppu: Ppu, apu: Apu }
 
-
-
-function Screen() {
+function Screen({ nes }: { nes: Nes }) {
   return <div>
     <canvas id="screen" width={283 * 2} height={242 * 2}
       className="border-2 border-black"
@@ -49,148 +51,23 @@ function Screen() {
   </div>
 }
 
-// TODO: hardcoded for testing
-const pallete = ["#004848", "#009191", "#00FFFF", "#91DAFF"] as const
-const pixels = new Uint8Array(0x8000) //32kb
-function PatternDebugScreen({ ppu, id }: { ppu: Ppu, id: number }) {
-  useEffect(() => {
-    function draw() {
-      const canvas = document.getElementById(`pattern-${id}`) as HTMLCanvasElement | null
-      if (!canvas) {
-        // throw new Error("canvas not supported")
-        return
-      }
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        // throw new Error("Canvas context not supported")
-        return
-      }
-
-
-      let x = 0
-      let y = 0
-      let tileX = 0
-      let tileY = 0
-      ctx.clearRect(0, 0, 300, 300)
-      ctx.moveTo(0, 0)
-      const size = 2
-      const offset = id === 0 ? 0 : pixels.length / 2
-      for (let i = 0; i < pixels.length / 2; i++) {
-        if (i % 8 === 0 && i !== 0) {
-          y++
-          x = tileX
-        }
-        if (i % 64 === 0 && i !== 0) {
-          y = tileY
-          tileX += 8
-          x = tileX
-        }
-        if (i % (64 * 16) === 0 && i !== 0) {
-          tileY += 8
-          y = tileY
-          tileX = 0
-          x = 0
-        }
-        ctx.fillStyle = pallete[pixels[i + offset]];
-        ctx.moveTo(x, y)
-        ctx.beginPath()
-        ctx.fillRect(x * size, y * size, size, size);
-        ctx.closePath()
-
-        x++
-      }
-    }
-    let tile = []
-    let pixelIndex = 0
-    for (let i = 0; i < 0x2000; i++) {
-      const byte = ppu.read(i)
-      tile.push(byte)
-      if (tile.length === 16) {
-        const loBytes = tile.slice(0, 8)
-        const hiBytes = tile.slice(8)
-        for (let j = 0; j < 8; j++) {
-          const lo = loBytes[j]
-          const hi = hiBytes[j]
-          for (let bitIndex = 7; bitIndex >= 0; bitIndex--) {
-            const value = ((lo >> bitIndex) & 1) + (((hi >> bitIndex) & 1) << 1)
-            pixels[pixelIndex++] = value
-          }
-        }
-        tile = []
-      }
-    }
-
-    draw()
-  }, [ppu])
-
-  return <div>
-    <p>Table: {id}</p>
-    <canvas id={`pattern-${id}`} width={256} height={256}
-      className="border-2 border-black"
-    />
-  </div>
-}
-function CpuDebugScreen({ cpu }: { cpu: Cpu | null }) {
-  if (!cpu) return <div>no cpu</div>
-
-  const instructions = []
-  for (let i = 0; i < 20; i++) {
-    instructions.push(<p key={i} className={i === 10 ? "font-bold" : ""}>{hex(cpu.PC + i - 10, 4)} {hex(cpu.read(cpu.PC + i - 10), 2)}</p>)
-  }
-
-  return <div className=" border-2 border-black p-2">
-    <h2 className="text-xl font-bold">Cpu:</h2>
-    <p>PC: {hex(cpu.PC, 4)}</p>
-    <p>SP: {hex(cpu.SP, 2)}</p>
-    <p>Accumulator: {hex(cpu.Accumulator, 2)}</p>
-    <p>X: {hex(cpu.X, 2)}</p>
-    <p>Y: {hex(cpu.Y, 2)}</p>
-    <hr />
-    <p>Operating Address: {hex(cpu.operatingAddress, 4)}</p>
-    <p>Operating Value: {hex(cpu.operatingValue, 4)}</p>
-    <p>Cycles: {cpu.cycles}</p>
-    <h3 className="font-bold mt-2">Flags:</h3>
-    <div className="flex space-x-2 text-sm">
-      <p>Carry: {cpu.carryFlag}</p>
-      <p>Zero: {cpu.zeroFlag}</p>
-      <p>Interrupt: {cpu.interruptFlag}</p>
-      <p>Break: {cpu.breakFlag}</p>
-      <p>Overflow: {cpu.overflowFlag}</p>
-      <p>Negative: {cpu.negativeFlag}</p>
-    </div>
-    <h3 className="font-bold mt-2">Instructions:</h3>
-    {instructions}
-  </div>
-}
-
-function MemoryDebugScreen({ cpu }: { cpu: Cpu }) {
-  const memoryView = []
-  for (let row = 0; row < 16; row++) {
-    const rowValues = []
-    for (let col = 0; col < 16; col++) {
-      rowValues.push(cpu.read(row * 16 + col))
-    }
-    memoryView.push(<p key={row} className="flex space-x-2">{hex(row * 16, 4)}<span className="pl-4"></span> {rowValues.map(v => hex(v, 2) + "  ")}</p>)
-  }
-
-  return <div>
-    <h2 className="text-lg font-bold">Memory</h2>
-    <div className="grid grid-cols-16 gap-2">
-      {memoryView}
-    </div>
-  </div>
-}
-
-
-console.log(nesDefault)
-
 function App() {
   const [nes, setNes] = useState(nesDefault)
+  const [palletteIndex, setPalletteIndex] = useState(0)
 
   useEffect(() => {
+    // TODO: testing
+    ppu.write(0x3f00, 0x21)
+    ppu.write(0x3f01, 0x16)
+    ppu.write(0x3f02, 0x06)
+    ppu.write(0x3f03, 0x02)
+    setNes({ ...nes })
     function handler(e: KeyboardEvent) {
       if (e.key === "n") {
         nes.cpu.clock()
+        setNes({ ...nes })
+      } else if (e.key === "p") {
+        setPalletteIndex(prev => (prev + 1) % 8)
         setNes({ ...nes })
       }
     }
@@ -199,20 +76,23 @@ function App() {
   }, [])
 
   return (
-    <div className="p-4 font-mono">
-      <div className="flex flex-wrap">
+    <div className="p-4 pt-1 font-mono">
+      <div>Controls: n=step_instruction p=cycle_pallettes</div>
+      <div className="flex flex-wrap space-x-1">
         <div>
-          <Screen />
+          <Screen nes={nes} />
           <div className="flex">
-            <PatternDebugScreen id={0} ppu={nes.ppu} />
-            <PatternDebugScreen id={1} ppu={nes.ppu} />
+            <PatternDebugScreen id={0} nes={nes} palletteIndex={palletteIndex} />
+            <PatternDebugScreen id={1} nes={nes} palletteIndex={palletteIndex} />
           </div>
         </div>
-        <div>
-          <CpuDebugScreen cpu={nes?.cpu ?? null} />
+        <CpuDebugScreen cpu={nes?.cpu ?? null} />
+        <PalletteViewer ppu={ppu} />
+        <div className="flex flex-col">
+          <MemoryDebugScreen name="ppu" ppu={nes.ppu} start={0x3F00} rows={2} />
+          <MemoryDebugScreen name="cpu" cpu={nes.cpu} />
         </div>
       </div>
-      <MemoryDebugScreen cpu={nes.cpu} />
     </div>
   )
 }
