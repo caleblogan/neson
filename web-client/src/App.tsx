@@ -4,7 +4,8 @@ import { Cart0 } from "nes/src/carts.ts"
 import { Ppu } from "nes/src/ppu.ts"
 import { Apu } from "nes/src/apu.ts"
 import { Cpu } from "nes/src/cpu.ts"
-import { rom } from "./assets/nestest.ts"
+// import { rom } from "./assets/nestest.ts"
+import { rom } from "./assets/roms/donkey-kong.nes.ts"
 
 // TODO: hardcoded for testing
 const romBytes = rom.slice(16)
@@ -49,7 +50,7 @@ function Screen() {
 }
 
 // TODO: hardcoded for testing
-const pallete = ["blue", "yellow", "red", "green"] as const
+const pallete = ["#004848", "#009191", "#00FFFF", "#91DAFF"] as const
 const pixels = new Uint8Array(0x8000) //32kb
 function PatternDebugScreen({ ppu, id }: { ppu: Ppu, id: number }) {
   useEffect(() => {
@@ -70,16 +71,11 @@ function PatternDebugScreen({ ppu, id }: { ppu: Ppu, id: number }) {
       let y = 0
       let tileX = 0
       let tileY = 0
-      ctx.clearRect(0, 0, 256, 256)
+      ctx.clearRect(0, 0, 300, 300)
       ctx.moveTo(0, 0)
       const size = 2
+      const offset = id === 0 ? 0 : pixels.length / 2
       for (let i = 0; i < pixels.length / 2; i++) {
-        ctx.fillStyle = pallete[pixels[i]];
-        ctx.moveTo(x, y)
-        ctx.beginPath()
-        ctx.fillRect(x * size, y * size, size, size);
-
-        x++
         if (i % 8 === 0 && i !== 0) {
           y++
           x = tileX
@@ -95,13 +91,18 @@ function PatternDebugScreen({ ppu, id }: { ppu: Ppu, id: number }) {
           tileX = 0
           x = 0
         }
-
+        ctx.fillStyle = pallete[pixels[i + offset]];
+        ctx.moveTo(x, y)
+        ctx.beginPath()
+        ctx.fillRect(x * size, y * size, size, size);
         ctx.closePath()
+
+        x++
       }
     }
     let tile = []
     let pixelIndex = 0
-    for (let i = 0; i < 0x1000; i++) {
+    for (let i = 0; i < 0x2000; i++) {
       const byte = ppu.read(i)
       tile.push(byte)
       if (tile.length === 16) {
@@ -198,7 +199,7 @@ function App() {
   }, [])
 
   return (
-    <div className="p-4">
+    <div className="p-4 font-mono">
       <div className="flex flex-wrap">
         <div>
           <Screen />
