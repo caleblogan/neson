@@ -28,10 +28,15 @@ const nesDefault = {
  * [*] load cpu & cart with rom bytes
  * [*] display registers and flags
  * [*] display current instructions $0000 - $FF (maybe the mnemonic)
- * [] display memory
- * [] display pattern tables
+ * [*] display memory
+ * [*] display pattern tables
  * [*] add step forward control (keydown)
+ * [ ] display pallette
+ * [ ] draw pattern table using pallette
+ * [ ] draw random pixels to screen each clock tick (cycle)
+ * [ ] display nametable (vram)
  */
+
 
 
 
@@ -43,10 +48,83 @@ function Screen() {
   </div>
 }
 
-function PatternDebugScreen({ id }: { id: number }) {
+// TODO: hardcoded for testing
+const pallete = ["blue", "yellow", "red", "green"] as const
+const pixels = new Uint8Array(0x8000) //32kb
+function PatternDebugScreen({ ppu, id }: { ppu: Ppu, id: number }) {
+  useEffect(() => {
+    function draw() {
+      const canvas = document.getElementById(`pattern-${id}`) as HTMLCanvasElement | null
+      if (!canvas) {
+        // throw new Error("canvas not supported")
+        return
+      }
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        // throw new Error("Canvas context not supported")
+        return
+      }
+
+
+      let x = 0
+      let y = 0
+      let tileX = 0
+      let tileY = 0
+      ctx.clearRect(0, 0, 256, 256)
+      ctx.moveTo(0, 0)
+      const size = 2
+      for (let i = 0; i < pixels.length / 2; i++) {
+        ctx.fillStyle = pallete[pixels[i]];
+        ctx.moveTo(x, y)
+        ctx.beginPath()
+        ctx.fillRect(x * size, y * size, size, size);
+
+        x++
+        if (i % 8 === 0 && i !== 0) {
+          y++
+          x = tileX
+        }
+        if (i % 64 === 0 && i !== 0) {
+          y = tileY
+          tileX += 8
+          x = tileX
+        }
+        if (i % (64 * 16) === 0 && i !== 0) {
+          tileY += 8
+          y = tileY
+          tileX = 0
+          x = 0
+        }
+
+        ctx.closePath()
+      }
+    }
+    let tile = []
+    let pixelIndex = 0
+    for (let i = 0; i < 0x1000; i++) {
+      const byte = ppu.read(i)
+      tile.push(byte)
+      if (tile.length === 16) {
+        const loBytes = tile.slice(0, 8)
+        const hiBytes = tile.slice(8)
+        for (let j = 0; j < 8; j++) {
+          const lo = loBytes[j]
+          const hi = hiBytes[j]
+          for (let bitIndex = 7; bitIndex >= 0; bitIndex--) {
+            const value = ((lo >> bitIndex) & 1) + (((hi >> bitIndex) & 1) << 1)
+            pixels[pixelIndex++] = value
+          }
+        }
+        tile = []
+      }
+    }
+
+    draw()
+  }, [ppu])
+
   return <div>
     <p>Table: {id}</p>
-    <canvas id="screen" width={128} height={128}
+    <canvas id={`pattern-${id}`} width={256} height={256}
       className="border-2 border-black"
     />
   </div>
@@ -125,8 +203,8 @@ function App() {
         <div>
           <Screen />
           <div className="flex">
-            <PatternDebugScreen id={0} />
-            <PatternDebugScreen id={1} />
+            <PatternDebugScreen id={0} ppu={nes.ppu} />
+            <PatternDebugScreen id={1} ppu={nes.ppu} />
           </div>
         </div>
         <div>

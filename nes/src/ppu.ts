@@ -48,7 +48,7 @@ export class Ppu {
         }
     }
 
-    private read(busAddress: number): number {
+    read(busAddress: number): number {
         if (0x0 <= busAddress && busAddress <= 0x1FFF) {
             return this.cart.ppuRead(busAddress)
         }
@@ -66,7 +66,7 @@ export class Ppu {
         }
         throw new Error("Method not implemented.")
     }
-    private write(busAddress: number, value: number) {
+    write(busAddress: number, value: number) {
         if (0x0 <= busAddress && busAddress <= 0x1FFF) {
             throw new Error("Trying to write to ROM from ppu")
         }
