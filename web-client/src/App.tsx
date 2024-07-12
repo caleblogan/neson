@@ -10,6 +10,8 @@ import { CpuDebugScreen } from "./debugger/CpuDebugScreen.tsx"
 import { MemoryDebugScreen } from "./debugger/MemoryDebugScreen.tsx"
 import { PalletteViewer } from "./debugger/PalletteViewer.tsx"
 import { hex } from "nes/src/utils.ts"
+import { PpuDebugScreen } from "./debugger/PpuDebugScreen.tsx"
+import { Nes } from "./debugger/PpuDebugScreen.tsx"
 
 // TODO: hardcoded for testing
 const romBytes = rom.slice(16)
@@ -39,30 +41,20 @@ const nesDefault = {
  * [*] pallette colors
  * [*] display pallette
  * [*] draw pattern table using pallette
- * [] ppu viewer
+ * [*] ppu viewer
  * [*] display nametable (vram)
+ * [*] add ppu registers
+ * [] fix ppu read/write registers
  */
 
-type Nes = { cpu: Cpu, ppu: Ppu, apu: Apu }
 
 function Screen({ nes }: { nes: Nes }) {
   return <div>
-    <canvas id="screen" width={283 * 2} height={242 * 2}
+    <canvas id="screen" width={256 * 2} height={240 * 2}
       className="border-2 border-black"
     />
   </div>
 }
-
-function PpuDebugScreen({ nes }: { nes: Nes }) {
-  return <div className=" border-2 border-black p-2">
-    <h2 className="text-xl font-bold">Ppu:</h2>
-    <p>Cycles: {nes.ppu.cycle}</p>
-    <p>Scanline: {nes.ppu.scanline}</p>
-    <hr />
-  </div>;
-}
-
-
 
 function App() {
   const [nes, setNes] = useState(nesDefault)
@@ -70,12 +62,12 @@ function App() {
 
   useEffect(() => {
     // TODO: testing
-    ppu.write(0x3f00, 0x21)
-    ppu.write(0x3f01, 0x16)
-    ppu.write(0x3f02, 0x06)
-    ppu.write(0x3f03, 0x02)
-    ppu.write(0x2000, 0x11)
-    ppu.write(0x2001, 0x12)
+    // ppu.write(0x3f00, 0x21)
+    // ppu.write(0x3f01, 0x16)
+    // ppu.write(0x3f02, 0x06)
+    // ppu.write(0x3f03, 0x02)
+    // ppu.write(0x2000, 0x11)
+    // ppu.write(0x2001, 0x12)
     setNes({ ...nes })
     function handler(e: KeyboardEvent) {
       if (e.key === "n") {
@@ -92,22 +84,33 @@ function App() {
     return () => window.removeEventListener("keydown", handler)
   }, [])
 
-  useEffect(() => {
-    const BATCH_CYCLES = 100
-    const id = setInterval(function ticker() {
-      for (let i = 0; i < BATCH_CYCLES; i++) {
-        if (i % 3 === 0) {
-          // nes.cpu.clock()
-        }
-        // nes.ppu.clock()
-      }
-    }, 30)
-    return () => clearInterval(id)
-  })
+  // useEffect(() => {
+  //   let systemClock = 0
+  //   const BATCH_CYCLES = 2 ** 12
+  //   const id = setInterval(function ticker() {
+  //     for (let i = 0; i < BATCH_CYCLES; i++) {
+  //       // while (!nes.ppu.frameComplete) {
+  //       if (systemClock % 3 === 0) {
+  //         nes.cpu.clock()
+  //       }
+  //       nes.ppu.clock()
+  //       systemClock++
+  //     }
+  //     // nes.ppu.frameComplete = false
+  //   }, 16)
+  //   return () => clearInterval(id)
+  // }, [])
+
+  // useEffect(() => {
+  //   const id = setInterval(function tk() {
+  //     setNes({ ...nes })
+  //   }, 500)
+  //   return () => clearInterval(id)
+  // }, [])
 
   return (
     <div className="p-4 pt-1 font-mono">
-      <div>Controls: n=step_instruction p=cycle_pallettes</div>
+      <div>Debug Controls: n=step_instruction p=cycle_pallettes</div>
       <div className="flex flex-wrap space-x-1">
         <div>
           <Screen nes={nes} />

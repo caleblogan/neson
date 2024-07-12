@@ -46,7 +46,6 @@ export function PatternDebugScreen({ nes, id, palletteIndex = 0 }: { nes: { cpu:
                     x = 0;
                 }
                 const offset = id === 0 ? 0 : pixels.length / 2;
-                // ctx.fillStyle = NES_COLORS_NC02[pallettes[palletteIndex][pixels[i + offset]]];
                 ctx.fillStyle = NES_COLORS_NC02[nes.ppu.read(0x3f00 + palletteIndex * 4 + pixels[i + offset])];
                 ctx.moveTo(x, y);
                 ctx.beginPath();
