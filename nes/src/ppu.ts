@@ -13,6 +13,7 @@ export class Ppu {
 
     cycle: number = 0 // x
     scanline: number = 0 // y
+    nmi: boolean = false
 
     frameComplete: boolean = false
 
@@ -64,8 +65,8 @@ export class Ppu {
     get regVramAddressLatch() { return this._regVramAddressLatch & 0x1 }
     set regVramAddressLatch(value) { this._regVramAddressLatch = value & 0x1 }
     _regVramData: number = 0
-    get regVramData() { return this._regVramData & 0xff }
-    set regVramData(value) { this._regVramData = value & 0xff }
+    get regVramData() { return this._regVramData & 0xffff }
+    set regVramData(value) { this._regVramData = value & 0xffff }
 
     constructor(cart: Cart) {
         this.cart = cart
@@ -73,7 +74,15 @@ export class Ppu {
 
     // this will pretty much draw 1 pixel per cycle at (cycle, scanline) to screen
     clock() {
-
+        if (this.scanline === -1 && this.cycle === 1) {
+            this.verticalBlank = 0
+        }
+        if (this.scanline === 241 && this.cycle === 1) {
+            this.verticalBlank = 1
+            if (this.generateNmi) {
+                this.nmi = true
+            }
+        }
         // in view so draw
         if (this.scanline >= 0 && this.scanline < 240 && this.cycle >= 0 && this.cycle < 256) {
             // TODO: hardcode pallette
@@ -99,15 +108,9 @@ export class Ppu {
 
         this.cycle++
 
-        if (this.scanline === 0) {
-            // this.verticalBlank = 0
-        }
-        if (this.scanline === 256) {
-            this.verticalBlank = 1
-        }
 
         if (this.cycle >= 341) {
-            this.cycle = 0
+            this.cycle = 1
             this.scanline++
             if (this.scanline >= 261) {
                 this.scanline = -1
@@ -133,37 +136,39 @@ export class Ppu {
     }
 
     readCpuRegister(reg: number) {
-        if (reg === 6) {
-            console.log(`read ppu register ${reg}`)
-        }
         switch (reg) {
             case 0:
-                return this.regControl
+                // return this.regControl
+                return 0
             case 1:
-                return this.regMask
+                // return this.regMask
+                return 0
             case 2: {
-                const data = this.regStatus
+                this.verticalBlank = 1
+                const data = this.regStatus & 0xE0
                 this.verticalBlank = 0
                 this.regVramAddressLatch = 0
                 return data
             }
             case 3:
-                return this.regOamAddress
+                // return this.regOamAddress
+                return 0
             case 4:
-                return this.regOamData
+                // return this.regOamData
+                return 0
             case 5:
-                return this.regScroll
+                // return this.regScroll
+                return 0
             case 6:
-                return this.regVramAddress
-            // throw new Error("Cannot read vram address")
+                return 0
             case 7: {
-                // console.log(`read vram address ${hex(this.regVramAddress, 4)}`)
                 let data = this.regVramData
                 this.regVramData = this.read(this.regVramAddress)
                 if (this.regVramAddress >= 0x3F00) {
                     data = this.regVramData
                 }
-                this.regVramAddress += this.vramAddresssIncrement
+                // this.regVramAddress += this.vramAddresssIncrement
+                // this.regVramAddress++
                 return data
             }
             default:
@@ -179,55 +184,47 @@ export class Ppu {
                 this.regMask = value
                 return
             case 2:
-                this.regStatus = value
+                // this.regStatus = value
                 return
             case 3:
-                this.regOamAddress = value
+                // this.regOamAddress = value
                 return
             case 4:
-                this.regOamData = value
+                // this.regOamData = value
                 return
             case 5:
-                this.regScroll = value
+                // this.regScroll = value
                 return
             case 6:
-                console.log(`write vram address ${hex(value, 2)}`)
                 if (this.regVramAddressLatch === 0) {
+                    this.regVramAddress = (this.regVramAddress & 0x00FF) | (value << 8)
                     this.regVramAddressLatch = 1
-                    this.regVramAddress = value << 8
                 } else {
+                    this.regVramAddress = (this.regVramAddress & 0xFF00) | value
                     this.regVramAddressLatch = 0
-                    this.regVramAddress |= value
-                    // this.regVramData = this.read(this.regVramAddress)
                 }
                 return
             case 7:
                 this.write(this.regVramAddress, value)
-                // this.regVramAddress += this.vramAddresssIncrement
+                this.regVramAddress++
                 return
             default:
                 throw new Error(`PPU register ${reg} not implemented`)
         }
     }
 
-    readOam(address: number) { }
+    readOam(address: number) { return 0 }
     writeOam(address: number, value: number) { }
 
     read(busAddress: number): number {
         if (0x0 <= busAddress && busAddress <= 0x1FFF) {
             return this.cart.ppuRead(busAddress)
         }
-        // $2000-$23BF	$0400	Nametable 0	Cartridge
-        // $2400-$27FF	$0400	Nametable 1	Cartridge
-        // $2800-$2BFF	$0400	Nametable 2	Cartridge
-        // $2C00-$2FFF	$0400	Nametable 3	Cartridge
         else if (0x2000 <= busAddress && busAddress <= 0x2FFF) {
-            return this.nameTables[busAddress - 0x2000]
-        }
-        // $3F00-$3F1F	$0020	Palette RAM indexes	Internal to PPU
-        // $3F20-$3FFF	$00E0	Mirrors of $3F00-$3F1F	Internal to PPU
-        // each color takes up one byte; 32 colors; 4 per pallette; 4 bg pallette; 4 fg pallettes; 2*4*4=32 bytes
-        else if (0x3F00 <= busAddress && busAddress <= 0x3FFF) {
+            return this.nameTables[(busAddress - 0x2000) % 1024] // TODO: hack to get nametable 0
+        } else if (0x3000 <= busAddress && busAddress <= 0x3EFF) {
+            return this.read(busAddress - 0x1000)
+        } else if (0x3F00 <= busAddress && busAddress <= 0x3FFF) {
             let addr = busAddress & 0x1f
             if (addr === 0x10) addr = 0x00
             if (addr === 0x14) addr = 0x04
@@ -242,9 +239,10 @@ export class Ppu {
             throw new Error("Trying to write to ROM from ppu")
         }
         else if (0x2000 <= busAddress && busAddress <= 0x2FFF) {
-            this.nameTables[busAddress - 0x2000] = value
+            this.nameTables[(busAddress - 0x2000) % 1024] = value // TODO: hack to get nametable 0
+        } else if (0x3000 <= busAddress && busAddress <= 0x3EFF) {
+            this.write(busAddress - 0x1000, value)
         }
-        // TODO: mirroring on write could cause some funky issues ??
         else if (0x3F00 <= busAddress && busAddress <= 0x3FFF) {
             let addr = busAddress & 0x1f
             if (addr === 0x10) addr = 0x00

@@ -2,6 +2,7 @@ import { Apu } from "./apu"
 import { Cart } from "./carts"
 import { UnknownOpcode } from "./errors"
 import { Ppu } from "./ppu"
+import { hex } from "./utils"
 
 const STACK_BOTTOM = 0x0100
 const INTERRUPT_VECTOR_NMI = 0xFFFA
@@ -114,7 +115,7 @@ export class Cpu {
         else if (0x2000 <= address && address <= 0x3FFF) {
             return this.ppu.readCpuRegister((address - 0x2000) % 8) // mirroring
         } else if (address === 0x4014) {
-            this.ppu.readOam(address)
+            return this.ppu.readOam(address)
         } else if (0x4000 <= address && address <= 0x4017) {
             return this.apu.cpuRead(address - 0x4000)
         } else if (0x4018 <= address && address <= 0x401F) {
@@ -122,7 +123,7 @@ export class Cpu {
         } else if (0x4020 <= address && address <= 0xFFFF) {
             return this.cart.cpuRead(address)
         }
-        throw new Error(`Invalid address ${address}; this shouldn't happen`)
+        throw new Error(`Invalid address ${hex(address, 4)}; this shouldn't happen`)
     }
 
     readBytes(addresses: number[]) {
@@ -146,7 +147,7 @@ export class Cpu {
         } else if (0x4020 <= address && address <= 0xFFFF) {
             this.cart.cpuWrite(address, value)
         } else {
-            throw new Error(`Invalid address ${address}; this shouldn't happen`)
+            throw new Error(`Invalid address ${hex(address, 4)}; this shouldn't happen`)
         }
     }
 

@@ -3,8 +3,8 @@ import { Cart0 } from "nes/src/carts.ts"
 import { Ppu } from "nes/src/ppu.ts"
 import { Apu } from "nes/src/apu.ts"
 import { Cpu } from "nes/src/cpu.ts"
-import { rom } from "./assets/nestest.ts"
-// import { rom } from "./assets/roms/donkey-kong.nes.ts"
+// import { rom } from "./assets/nestest.ts"
+import { rom } from "./assets/roms/donkey-kong.nes.ts"
 import { PatternDebugScreen } from "./debugger/PatternDebugScreen.tsx"
 import { CpuDebugScreen } from "./debugger/CpuDebugScreen.tsx"
 import { MemoryDebugScreen } from "./debugger/MemoryDebugScreen.tsx"
@@ -84,22 +84,24 @@ function App() {
     return () => window.removeEventListener("keydown", handler)
   }, [])
 
-  // useEffect(() => {
-  //   let systemClock = 0
-  //   const BATCH_CYCLES = 2 ** 12
-  //   const id = setInterval(function ticker() {
-  //     for (let i = 0; i < BATCH_CYCLES; i++) {
-  //       // while (!nes.ppu.frameComplete) {
-  //       if (systemClock % 3 === 0) {
-  //         nes.cpu.clock()
-  //       }
-  //       nes.ppu.clock()
-  //       systemClock++
-  //     }
-  //     // nes.ppu.frameComplete = false
-  //   }, 16)
-  //   return () => clearInterval(id)
-  // }, [])
+  useEffect(() => {
+    let systemClock = 0
+    const BATCH_CYCLES = 2 ** 12
+    const id = setInterval(function ticker() {
+      for (let i = 0; i < BATCH_CYCLES; i++) {
+        if (nes.ppu.nmi) {
+          nes.ppu.nmi = false
+          nes.cpu.nmi()
+        }
+        if (systemClock % 3 === 0) {
+          nes.cpu.clock()
+        }
+        nes.ppu.clock()
+        systemClock++
+      }
+    }, 16)
+    return () => clearInterval(id)
+  }, [])
 
   // useEffect(() => {
   //   const id = setInterval(function tk() {
