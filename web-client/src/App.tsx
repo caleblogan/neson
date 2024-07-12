@@ -9,6 +9,7 @@ import { PatternDebugScreen } from "./debugger/PatternDebugScreen.tsx"
 import { CpuDebugScreen } from "./debugger/CpuDebugScreen.tsx"
 import { MemoryDebugScreen } from "./debugger/MemoryDebugScreen.tsx"
 import { PalletteViewer } from "./debugger/PalletteViewer.tsx"
+import { hex } from "nes/src/utils.ts"
 
 // TODO: hardcoded for testing
 const romBytes = rom.slice(16)
@@ -38,7 +39,8 @@ const nesDefault = {
  * [*] pallette colors
  * [*] display pallette
  * [*] draw pattern table using pallette
- * [ ] display nametable (vram)
+ * [] ppu viewer
+ * [*] display nametable (vram)
  */
 
 type Nes = { cpu: Cpu, ppu: Ppu, apu: Apu }
@@ -51,6 +53,17 @@ function Screen({ nes }: { nes: Nes }) {
   </div>
 }
 
+function PpuDebugScreen({ nes }: { nes: Nes }) {
+  return <div className=" border-2 border-black p-2">
+    <h2 className="text-xl font-bold">Ppu:</h2>
+    <p>Cycles: {nes.ppu.cycle}</p>
+    <p>Scanline: {nes.ppu.scanline}</p>
+    <hr />
+  </div>;
+}
+
+
+
 function App() {
   const [nes, setNes] = useState(nesDefault)
   const [palletteIndex, setPalletteIndex] = useState(0)
@@ -61,19 +74,36 @@ function App() {
     ppu.write(0x3f01, 0x16)
     ppu.write(0x3f02, 0x06)
     ppu.write(0x3f03, 0x02)
+    ppu.write(0x2000, 0x11)
+    ppu.write(0x2001, 0x12)
     setNes({ ...nes })
     function handler(e: KeyboardEvent) {
       if (e.key === "n") {
         nes.cpu.clock()
+        nes.ppu.clock()
         setNes({ ...nes })
       } else if (e.key === "p") {
         setPalletteIndex(prev => (prev + 1) % 8)
         setNes({ ...nes })
       }
     }
+
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
   }, [])
+
+  useEffect(() => {
+    const BATCH_CYCLES = 100
+    const id = setInterval(function ticker() {
+      for (let i = 0; i < BATCH_CYCLES; i++) {
+        if (i % 3 === 0) {
+          nes.cpu.clock()
+        }
+        nes.ppu.clock()
+      }
+    }, 30)
+    return () => clearInterval(id)
+  })
 
   return (
     <div className="p-4 pt-1 font-mono">
@@ -87,6 +117,7 @@ function App() {
           </div>
         </div>
         <CpuDebugScreen cpu={nes?.cpu ?? null} />
+        <PpuDebugScreen nes={nes} />
         <PalletteViewer ppu={ppu} />
         <div className="flex flex-col">
           <MemoryDebugScreen name="ppu" ppu={nes.ppu} start={0x3F00} rows={2} />
