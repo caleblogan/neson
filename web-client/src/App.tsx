@@ -3,15 +3,16 @@ import { Cart0 } from "nes/src/carts.ts"
 import { Ppu } from "nes/src/ppu.ts"
 import { Apu } from "nes/src/apu.ts"
 import { Cpu } from "nes/src/cpu.ts"
-import { rom } from "./assets/nestest.ts"
-// import { rom } from "./assets/roms/donkey-kong.nes.ts"
+// import { rom } from "./assets/nestest.ts"
+import { rom } from "./assets/roms/donkey-kong.nes.ts"
+// import { rom } from "./assets/roms/mario-bros.nes.ts"
+// import { rom } from "./assets/roms/balloon-fight.nes.ts"
 import { PatternDebugScreen } from "./debugger/PatternDebugScreen.tsx"
 import { CpuDebugScreen } from "./debugger/CpuDebugScreen.tsx"
 import { MemoryDebugScreen } from "./debugger/MemoryDebugScreen.tsx"
 import { PalletteViewer } from "./debugger/PalletteViewer.tsx"
-import { hex } from "nes/src/utils.ts"
 import { PpuDebugScreen } from "./debugger/PpuDebugScreen.tsx"
-import { Nes } from "./debugger/PpuDebugScreen.tsx"
+import { AttributeViewer } from "./debugger/AttributeViewer.tsx"
 
 // TODO: hardcoded for testing
 const romBytes = rom.slice(16)
@@ -45,14 +46,13 @@ const nesDefault = {
  * [*] display nametable (vram)
  * [*] add ppu registers
  * [*] fix ppu read/write registers
+ * [*] controller
  * [] attribute table
- * [] sprites
- * [] controller
- * [] another mapper?
+ * [] oam (sprites)
  */
 
 
-function Screen({ nes }: { nes: Nes }) {
+function Screen() {
   return <div>
     <canvas id="screen" width={256 * 2} height={240 * 2}
       className="border-2 border-black"
@@ -99,7 +99,7 @@ function App() {
 
   useEffect(() => {
     let systemClock = 0
-    const BATCH_CYCLES = 2 ** 14
+    const BATCH_CYCLES = 2 ** 16
     const id = setInterval(function ticker() {
       for (let i = 0; i < BATCH_CYCLES; i++) {
         if (nes.ppu.nmi) {
@@ -112,14 +112,14 @@ function App() {
         nes.ppu.clock()
         systemClock++
       }
-    }, 16)
+    }, 12)
     return () => clearInterval(id)
   }, [])
 
   useEffect(() => {
     const id = setInterval(function tk() {
       setNes({ ...nes })
-    }, 1000)
+    }, 800)
     return () => clearInterval(id)
   }, [])
 
@@ -128,7 +128,7 @@ function App() {
       <div>Debug Controls: n=step_instruction p=cycle_pallettes</div>
       <div className="flex flex-wrap space-x-1">
         <div>
-          <Screen nes={nes} />
+          <Screen />
           <div className="flex">
             <PatternDebugScreen id={0} nes={nes} palletteIndex={palletteIndex} />
             <PatternDebugScreen id={1} nes={nes} palletteIndex={palletteIndex} />
@@ -137,6 +137,7 @@ function App() {
         <CpuDebugScreen cpu={nes?.cpu ?? null} />
         <PpuDebugScreen nes={nes} />
         <PalletteViewer ppu={ppu} />
+        <AttributeViewer ppu={ppu} />
         <div className="flex flex-col">
           <MemoryDebugScreen name="ppu" ppu={nes.ppu} start={0x3F00} rows={2} />
           <MemoryDebugScreen name="cpu" cpu={nes.cpu} />

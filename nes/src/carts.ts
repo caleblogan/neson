@@ -1,5 +1,5 @@
 import * as fs from "fs"
-import { off } from "process"
+import { hex } from "./utils"
 
 class INesHeader {
     // Header (16 bytes)
@@ -82,7 +82,7 @@ export class Cart0 implements Cart {
             let addr = (busAddress - 0x8000) % this.prgRom.length
             return this.prgRom[addr]
         }
-        throw new Error(`Invalid bus address read ${busAddress}`)
+        throw new Error(`Invalid bus address read ${hex(busAddress, 4)}`)
     }
     cpuWrite(busAddress: number, value: number): void {
         if (busAddress >= 0x6000 && busAddress <= 0x7FFF) {
@@ -94,7 +94,7 @@ export class Cart0 implements Cart {
             // this.prgRom[addr] = value
             throw new Error(`Cannot write to ROM`)
         }
-        throw new Error(`Invalid bus address write ${busAddress}`)
+        throw new Error(`Invalid bus address write ${hex(busAddress, 4)}`)
     }
 
     ppuRead(busAddress: number): number {
@@ -102,7 +102,7 @@ export class Cart0 implements Cart {
         if (busAddress >= 0x0000 && busAddress <= 0x1FFF) {
             return this.chrRom[busAddress]
         }
-        throw new Error(`Invalid bus address read ${busAddress}`)
+        throw new Error(`Invalid bus address read ${hex(busAddress, 4)}`)
     }
     ppuWrite(busAddress: number, value: number): void {
         throw new Error("Ppu should not be writing to cart rom")

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "rom-to-js": "npx tsx watch src/rom-to-ts.ts"
+    "rom-to-js": "npx tsx src/rom-to-ts.ts"
   },
   "author": "",
   "license": "ISC",

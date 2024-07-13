@@ -1,6 +1,5 @@
 import { Apu } from "./apu"
 import { Cart } from "./carts"
-import { UnknownOpcode } from "./errors"
 import { Ppu } from "./ppu"
 import { hex } from "./utils"
 
@@ -117,7 +116,7 @@ export class Cpu {
         } else if (address === 0x4014) {
             return this.ppu.readOam(address)
         } else if (address === 0x4016) {
-            console.log(`READ joy1Register=${this.joy1InternalReg}`)
+            // TODO: better state management for joysticks
             if (this.joy1Counter < 2) { return 0 }
             if (this.joy1Counter > 10) {
                 this.joy1Counter = 0
@@ -156,7 +155,8 @@ export class Cpu {
         }
         else if (0x2000 <= address && address <= 0x3FFF) {
             this.ppu.writeCpuRegister((address - 0x2000) % 8, value) // mirroring
-        } else if (address === 0x4016) {
+        }
+        else if (address === 0x4016) {
             if (this.joy1Counter > 1) return
             else if (this.joy1Counter === 0) this.joy1Counter++
             else if (this.joy1Counter === 1) {
@@ -164,8 +164,8 @@ export class Cpu {
                 this.joy1InternalReg = this.joy1BufferReg
                 this.joy1BufferReg = 0
             }
-            // console.log(`writing joy1Register=${this.joy1Register} value=${value}`)
-        } else if (0x4000 <= address && address <= 0x4017) {
+        }
+        else if (0x4000 <= address && address <= 0x4017) {
             this.apu.cpuWrite(address - 0x4000, value)
         } else if (address === 0x4014) {
             this.ppu.writeOam(address, value)

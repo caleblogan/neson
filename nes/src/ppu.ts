@@ -83,32 +83,44 @@ export class Ppu {
                 this.nmi = true
             }
         }
+
         // in view so draw
         if (this.scanline >= 0 && this.scanline < 240 && this.cycle >= 0 && this.cycle < 256) {
-            // TODO: hardcode pallette
-            // TODO: hardcode nametable 1
             const tileId = this.read(0x2000 + Math.floor(this.scanline / 8) * 32 + Math.floor(this.cycle / 8))
+            const attribute = this.read(0x23C0 + Math.floor(this.scanline / 32) * 8 + Math.floor(this.cycle / 32))
+
+            // get 2 bit attribute for this tile
+            // const attributeId = (attribute >> (2 * ((this.scanline % 32) / 16)) & 3)
+            const ox = Math.floor((this.cycle % 32) / 16)
+            const oy = Math.floor((this.scanline % 32) / 16)
+            let attributeId = 0
+            if (ox === 0 && oy === 0) {
+                attributeId = attribute & 0x3
+            } else if (ox === 1 && oy === 0) {
+                attributeId = (attribute >> 2) & 0x3
+            } else if (ox === 0 && oy === 1) {
+                attributeId = (attribute >> 4) & 0x3
+            } else if (ox === 1 && oy === 1) {
+                attributeId = (attribute >> 6) & 0x3
+            }
 
             // get lo and hi byte from  chr ram
             const patternTable = this.bgPatternTableAddress ? 0x1000 : 0
             const loChr = this.read(patternTable + (0x0 + 16 * tileId) + this.scanline % 8)
             const hiChr = this.read(patternTable + (0x0 + 16 * tileId) + this.scanline % 8 + 8)
 
-            // console.log(`tileId: ${hex(tileId, 2)} loChr: ${hex(loChr, 2)} hiChr: ${hex(hiChr, 2)}`)
-
             // get pixel id
             const bitShiftOffset = 7 - (this.cycle % 8)
             const palletteIndex = ((loChr >> bitShiftOffset) & 1) | (((hiChr >> bitShiftOffset) & 1) << 1)
 
             // get color from pallette using pixel id
-            const color = NES_COLORS_NC02[this.palletes[palletteIndex]]
+            const color = NES_COLORS_NC02[this.palletes[attributeId * 4 + palletteIndex]]
 
             // draw pixel to canvas
             this.draw(this.cycle, this.scanline, color)
         }
 
         this.cycle++
-
 
         if (this.cycle >= 341) {
             this.cycle = 1
