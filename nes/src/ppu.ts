@@ -2,7 +2,7 @@ import { Cart } from "./carts"
 import { NES_COLORS_NC02 } from "./pallette"
 import { hex } from "./utils"
 
-let canvas = document.getElementById("screen") as HTMLCanvasElement
+// let canvas = document.getElementById("screen") as HTMLCanvasElement
 
 export class Ppu {
     cart: Cart
@@ -69,8 +69,9 @@ export class Ppu {
     get regVramData() { return this._regVramData & 0xffff }
     set regVramData(value) { this._regVramData = value & 0xffff }
 
-    constructor(cart: Cart) {
+    constructor(cart: Cart, private canvas?: OffscreenCanvas) {
         this.cart = cart
+
     }
 
     // this will pretty much draw 1 pixel per cycle at (cycle, scanline) to screen
@@ -116,7 +117,7 @@ export class Ppu {
             // get color from pallette using pixel id
             const color = NES_COLORS_NC02[this.palletes[attributeId * 4 + palletteIndex]]
 
-            // draw pixel to canvas
+            // // draw pixel to canvas
             this.draw(this.cycle, this.scanline, color)
         }
 
@@ -137,7 +138,7 @@ export class Ppu {
     // TODO: this buffering may cause artifacts
     // buffer = new Array(24).fill(0)
     // bufferIndex = 0
-    ctx = canvas?.getContext("2d")
+    ctx = this.canvas?.getContext("2d")
     draw(x: number, y: number, color: string) {
         // this.buffer[this.bufferIndex++] = x
         // this.buffer[this.bufferIndex++] = y
@@ -145,12 +146,11 @@ export class Ppu {
         // if (this.bufferIndex < 24) {
         //     return
         // }
-        if (!canvas) {
-            canvas = document.getElementById("screen") as HTMLCanvasElement
+        if (!this.canvas) {
             return
         }
         if (!this.ctx) {
-            this.ctx = canvas.getContext("2d")
+            this.ctx = this.canvas.getContext("2d")
             if (!this.ctx) {
                 return
             }

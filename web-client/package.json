@@ -10,13 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "nes": "file:../nes",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "nes": "file:../nes"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/sharedworker": "^0.0.118",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
     "@vitejs/plugin-react": "^4.3.1",
