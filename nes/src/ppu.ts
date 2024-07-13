@@ -171,13 +171,10 @@ export class Ppu {
     readCpuRegister(reg: number) {
         switch (reg) {
             case 0:
-                // return this.regControl
-                return 0
+                return this.regControl
             case 1:
-                // return this.regMask
-                return 0
+                return this.regMask
             case 2: {
-                this.verticalBlank = 1
                 const data = this.regStatus & 0xE0
                 this.verticalBlank = 0
                 this.regVramAddressLatch = 0
