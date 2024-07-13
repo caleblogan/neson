@@ -81,6 +81,6 @@ export function PatternDebugScreen({ nes, id, palletteIndex = 0 }: { nes: { cpu:
     return <div>
         <p>Table: {id}</p>
         <canvas id={`pattern-${id}`} width={256} height={256}
-            className="border-2 border-black" />
+            className="" />
     </div>;
 }

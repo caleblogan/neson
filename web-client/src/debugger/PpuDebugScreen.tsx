@@ -5,7 +5,7 @@ import { Ppu } from "nes/src/ppu";
 export type Nes = { cpu: Cpu, ppu: Ppu, apu: Apu }
 
 export function PpuDebugScreen({ nes }: { nes: Nes; }) {
-    return <div className=" border-2 border-black p-2">
+    return <div className="p-2">
         <h2 className="text-xl font-bold">Ppu:</h2>
         <p>Cycles: {nes.ppu.cycle}</p>
         <p>Scanline: {nes.ppu.scanline}</p>

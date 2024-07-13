@@ -9,7 +9,7 @@ export function CpuDebugScreen({ cpu }: { cpu: Cpu | null; }) {
         instructions.push(<p key={i} className={i === 10 ? "font-bold" : ""}>{hex(cpu.PC + i - 10, 4)} {hex(cpu.read(cpu.PC + i - 10), 2)}</p>);
     }
 
-    return <div className=" border-2 border-black p-2">
+    return <div className=" p-2">
         <h2 className="text-xl font-bold">Cpu:</h2>
         <p>PC: {hex(cpu.PC, 4)}</p>
         <p>SP: {hex(cpu.SP, 2)}</p>
@@ -21,13 +21,13 @@ export function CpuDebugScreen({ cpu }: { cpu: Cpu | null; }) {
         <p>Operating Value: {hex(cpu.operatingValue, 4)}</p>
         <p>Cycles: {cpu.cycles}</p>
         <h3 className="font-bold mt-2">Flags:</h3>
-        <div className="flex space-x-2 text-sm">
-            <p>Carry: {cpu.carryFlag}</p>
-            <p>Zero: {cpu.zeroFlag}</p>
-            <p>Interrupt: {cpu.interruptFlag}</p>
-            <p>Break: {cpu.breakFlag}</p>
-            <p>Overflow: {cpu.overflowFlag}</p>
-            <p>Negative: {cpu.negativeFlag}</p>
+        <div className="flex space-x-3 text-sm">
+            <p><span className="font-bold">C:</span>{cpu.carryFlag}</p>
+            <p><span className="font-bold">Z:</span>{cpu.zeroFlag}</p>
+            <p><span className="font-bold">I:</span>{cpu.interruptFlag}</p>
+            <p><span className="font-bold">B:</span>{cpu.breakFlag}</p>
+            <p><span className="font-bold">O:</span>{cpu.overflowFlag}</p>
+            <p><span className="font-bold">N:</span>{cpu.negativeFlag}</p>
         </div>
         <h3 className="font-bold mt-2">Instructions:</h3>
         {instructions}

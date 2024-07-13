@@ -8,7 +8,7 @@
 - [*] ui pallette memory viewer/selector
 - [*] ppu display nametables bg (rough) (loads nestest & donkey kong bg patterns)
 - [*] controllers
-- [] attribute table
+- [*] attribute table
 - [] ppu oam (sprites)
 - [] ppu scrolling w/ loopy registers
 - [] apu auido

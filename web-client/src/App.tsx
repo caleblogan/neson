@@ -4,15 +4,17 @@ import { Ppu } from "nes/src/ppu.ts"
 import { Apu } from "nes/src/apu.ts"
 import { Cpu } from "nes/src/cpu.ts"
 // import { rom } from "./assets/nestest.ts"
-import { rom } from "./assets/roms/donkey-kong.nes.ts"
+// import { rom } from "./assets/roms/donkey-kong.nes.ts"
 // import { rom } from "./assets/roms/mario-bros.nes.ts"
-// import { rom } from "./assets/roms/balloon-fight.nes.ts"
+import { rom } from "./assets/roms/balloon-fight.nes.ts"
+// import { rom } from "./assets/roms/ice-climbers.nes.ts"
 import { PatternDebugScreen } from "./debugger/PatternDebugScreen.tsx"
 import { CpuDebugScreen } from "./debugger/CpuDebugScreen.tsx"
 import { MemoryDebugScreen } from "./debugger/MemoryDebugScreen.tsx"
 import { PalletteViewer } from "./debugger/PalletteViewer.tsx"
 import { PpuDebugScreen } from "./debugger/PpuDebugScreen.tsx"
 import { AttributeViewer } from "./debugger/AttributeViewer.tsx"
+import { SpriteDebugScreen } from "./debugger/SpriteDebugScreen.tsx"
 
 // TODO: hardcoded for testing
 const romBytes = rom.slice(16)
@@ -31,31 +33,12 @@ const nesDefault = {
   apu
 }
 
-/**
- * [*] gets rom bytes into a Uint8Array 
- * [*] load cpu & cart with rom bytes
- * [*] display registers and flags
- * [*] display current instructions $0000 - $FF (maybe the mnemonic)
- * [*] display memory
- * [*] display pattern tables
- * [*] add step forward control (keydown)
- * [*] pallette colors
- * [*] display pallette
- * [*] draw pattern table using pallette
- * [*] ppu viewer
- * [*] display nametable (vram)
- * [*] add ppu registers
- * [*] fix ppu read/write registers
- * [*] controller
- * [] attribute table
- * [] oam (sprites)
- */
-
+console.log(ppu)
 
 function Screen() {
   return <div>
     <canvas id="screen" width={256 * 2} height={240 * 2}
-      className="border-2 border-black"
+      className=""
     />
   </div>
 }
@@ -136,8 +119,11 @@ function App() {
         </div>
         <CpuDebugScreen cpu={nes?.cpu ?? null} />
         <PpuDebugScreen nes={nes} />
-        <PalletteViewer ppu={ppu} />
         <AttributeViewer ppu={ppu} />
+        <div className="flex flex-col">
+          <PalletteViewer ppu={ppu} />
+          <SpriteDebugScreen nes={nes} />
+        </div>
         <div className="flex flex-col">
           <MemoryDebugScreen name="ppu" ppu={nes.ppu} start={0x3F00} rows={2} />
           <MemoryDebugScreen name="cpu" cpu={nes.cpu} />

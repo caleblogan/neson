@@ -155,6 +155,13 @@ export class Cpu {
         }
         else if (0x2000 <= address && address <= 0x3FFF) {
             this.ppu.writeCpuRegister((address - 0x2000) % 8, value) // mirroring
+        } else if (address === 0x4014) {
+            // So i think this works by writing once to the cpu register and then writing 256 bytes to the OAMDATA register
+            // using the page number as the address from 0xpp00 to 0xppFF
+            for (let i = 0; i < 256; i++) {
+                this.ppu.writeOam(i, this.read(value << 8 | i))
+            }
+            this.cycles += 513
         }
         else if (address === 0x4016) {
             if (this.joy1Counter > 1) return
@@ -167,8 +174,6 @@ export class Cpu {
         }
         else if (0x4000 <= address && address <= 0x4017) {
             this.apu.cpuWrite(address - 0x4000, value)
-        } else if (address === 0x4014) {
-            this.ppu.writeOam(address, value)
         } else if (0x4018 <= address && address <= 0x401F) {
             this.apu.cpuWriteIO(address - 0x4018, value)
         } else if (0x4020 <= address && address <= 0xFFFF) {

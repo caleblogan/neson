@@ -9,6 +9,7 @@ export class Ppu {
 
     nameTables: Uint8Array = new Uint8Array(2 * 1024)
     palletes: Uint8Array = new Uint8Array(32)
+    // layout: byte 0:y byte 1:tileId byte 2:attribute byte 3:x
     oam: Uint8Array = new Uint8Array(256)
 
     cycle: number = 0 // x
@@ -90,7 +91,6 @@ export class Ppu {
             const attribute = this.read(0x23C0 + Math.floor(this.scanline / 32) * 8 + Math.floor(this.cycle / 32))
 
             // get 2 bit attribute for this tile
-            // const attributeId = (attribute >> (2 * ((this.scanline % 32) / 16)) & 3)
             const ox = Math.floor((this.cycle % 32) / 16)
             const oy = Math.floor((this.scanline % 32) / 16)
             let attributeId = 0
@@ -243,8 +243,10 @@ export class Ppu {
         }
     }
 
-    readOam(address: number) { return 0 }
-    writeOam(address: number, value: number) { }
+    readOam(address: number) { return this.oam[address] }
+    writeOam(address: number, value: number) {
+        this.oam[address] = value
+    }
 
     read(busAddress: number): number {
         if (0x0 <= busAddress && busAddress <= 0x1FFF) {
