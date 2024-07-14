@@ -4,9 +4,9 @@ import { Ppu } from "nes/src/ppu.ts"
 import { Apu } from "nes/src/apu.ts"
 import { Cpu } from "nes/src/cpu.ts"
 // import { rom } from "./assets/nestest.ts"
-// import { rom } from "./assets/roms/donkey-kong.nes.ts"
+import { rom } from "./assets/roms/donkey-kong.nes.ts"
 // import { rom } from "./assets/roms/mario-bros.nes.ts"
-import { rom } from "./assets/roms/balloon-fight.nes.ts"
+// import { rom } from "./assets/roms/balloon-fight.nes.ts"
 // import { rom } from "./assets/roms/ice-climbers.nes.ts"
 import { PatternDebugScreen } from "./debugger/PatternDebugScreen.tsx"
 import { CpuDebugScreen } from "./debugger/CpuDebugScreen.tsx"
@@ -82,7 +82,7 @@ function App() {
 
   useEffect(() => {
     let systemClock = 0
-    const BATCH_CYCLES = 2 ** 16
+    const BATCH_CYCLES = 2 ** 16 + 20_000
     const id = setInterval(function ticker() {
       for (let i = 0; i < BATCH_CYCLES; i++) {
         if (nes.ppu.nmi) {
@@ -95,7 +95,7 @@ function App() {
         nes.ppu.clock()
         systemClock++
       }
-    }, 12)
+    }, 0)
     return () => clearInterval(id)
   }, [])
 
@@ -117,12 +117,12 @@ function App() {
             <PatternDebugScreen id={1} nes={nes} palletteIndex={palletteIndex} />
           </div>
         </div>
+        <SpriteDebugScreen nes={nes} />
         <CpuDebugScreen cpu={nes?.cpu ?? null} />
         <PpuDebugScreen nes={nes} />
         <AttributeViewer ppu={ppu} />
         <div className="flex flex-col">
           <PalletteViewer ppu={ppu} />
-          <SpriteDebugScreen nes={nes} />
         </div>
         <div className="flex flex-col">
           <MemoryDebugScreen name="ppu" ppu={nes.ppu} start={0x3F00} rows={2} />

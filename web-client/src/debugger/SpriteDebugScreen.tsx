@@ -1,6 +1,7 @@
 import { Apu } from "nes/src/apu";
 import { Cpu } from "nes/src/cpu";
 import { Ppu } from "nes/src/ppu";
+import { hex } from "nes/src/utils";
 
 export function SpriteDebugScreen({ nes }: { nes: { cpu: Cpu, ppu: Ppu, apu: Apu } }) {
     const sprites = []
@@ -16,10 +17,9 @@ export function SpriteDebugScreen({ nes }: { nes: { cpu: Cpu, ppu: Ppu, apu: Apu
         {sprites.map((sprite, i) => (
             <div key={`${sprite.x},${sprite.y}, ${i}`} className="flex space-x-4">
                 <div>{i}: {" "}</div>
-                <div>Y:{sprite.y}</div>
-                <div>Tile Index:{sprite.tileIndex}</div>
+                <div>({sprite.x}, {sprite.y})</div>
+                <div>ID:{hex(sprite.tileIndex)}</div>
                 <div>Attributes:{sprite.attributes}</div>
-                <div>X:{sprite.x}</div>
             </div>
         ))}
     </div>

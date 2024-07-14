@@ -84,6 +84,9 @@ export class Ppu {
                 this.nmi = true
             }
         }
+        if (this.scanline === 257) {
+            this.regOamAddress = 0
+        }
 
         // in view so draw
         if (this.scanline >= 0 && this.scanline < 240 && this.cycle >= 0 && this.cycle < 256) {
@@ -114,13 +117,52 @@ export class Ppu {
             const palletteIndex = ((loChr >> bitShiftOffset) & 1) | (((hiChr >> bitShiftOffset) & 1) << 1)
 
             // get color from pallette using pixel id
-            const color = NES_COLORS_NC02[this.palletes[attributeId * 4 + palletteIndex]]
+            const bgColor = NES_COLORS_NC02[this.palletes[attributeId * 4 + palletteIndex]]
 
-            // draw pixel to canvas
-            this.draw(this.cycle, this.scanline, color)
+            // sprites
+            const possibleSpriteIds = []
+            for (let i = 0; i < 64; i++) {
+                const spriteX = this.oam[i * 4 + 3]
+                const spriteY = this.oam[i * 4 + 0]
+                if (spriteX <= this.cycle && spriteX >= this.cycle - 8 && spriteY <= this.scanline && spriteY + 8 > this.scanline) {
+                    possibleSpriteIds.push(i)
+                }
+            }
+            let fgColor: string | undefined
+            for (let j = 0; j < possibleSpriteIds.length; j++) {
+                const index = possibleSpriteIds[j] * 4
+                const y = this.oam[index]
+                const tileId = this.oam[index + 1] // pattern table id
+                const attribute = this.oam[index + 2]
+                const x = this.oam[index + 3]
+
+                const page = this.spritePatternTableAddress ? 0x1000 : 0
+                const loChr = this.read(page + (16 * tileId) + this.scanline - y)
+                const hiChr = this.read(page + (16 * tileId) + this.scanline - y + 8)
+                // const bitShiftOffset = 0 - (this.cycle - x)
+                const bitShiftOffset = 7 - (this.cycle - x)
+                const palletteIndex = ((loChr >> bitShiftOffset) & 1) | (((hiChr >> bitShiftOffset) & 1) << 1)
+                if (palletteIndex === 0) {
+                    continue
+                }
+
+                const pallette = 16 + 4 * (attribute & 0x3)
+                const priority = (attribute & 0x20) === 0
+                fgColor = NES_COLORS_NC02[this.palletes[pallette + palletteIndex]]
+                if (priority) {
+                    break
+                }
+                break
+            }
+
+            this.draw(this.cycle, this.scanline, fgColor ?? bgColor)
         }
 
         this.cycle++
+
+        if (this.cycle === 340) {
+            // draw sprites on line
+        }
 
         if (this.cycle >= 341) {
             this.cycle = 1
@@ -181,13 +223,12 @@ export class Ppu {
                 return data
             }
             case 3:
-                // return this.regOamAddress
+                // only write - this.regOamAddress
                 return 0
             case 4:
-                // return this.regOamData
-                return 0
+                return this.oam[this.regOamAddress]
             case 5:
-                // return this.regScroll
+                // TODO: return this.regScroll
                 return 0
             case 6:
                 return 0
@@ -217,13 +258,14 @@ export class Ppu {
                 // this.regStatus = value
                 return
             case 3:
-                // this.regOamAddress = value
+                this.regOamAddress = value
                 return
             case 4:
-                // this.regOamData = value
+                this.oam[this.regOamAddress] = value
+                this.regOamAddress++
                 return
             case 5:
-                // this.regScroll = value
+                // TODO: this.regScroll = value
                 return
             case 6:
                 if (this.regVramAddressLatch === 0) {
