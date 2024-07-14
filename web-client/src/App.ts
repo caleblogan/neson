@@ -25,28 +25,72 @@ const nes = {
   apu
 }
 
+window.addEventListener("keyup", function handler(e: KeyboardEvent) {
+  if (e.key === "w" || e.key === "ArrowUp") {
+    cpu.joy1Buffer = []
+  } else if (e.key === "s" || e.key === "ArrowDown") {
+    cpu.joy1Buffer = []
+  } else if (e.key === "a" || e.key === "ArrowLeft") {
+    cpu.joy1Buffer = []
+  } else if (e.key === "d" || e.key === "ArrowRight") {
+    cpu.joy1Buffer = []
+  } else if (e.key === "Enter") { // Enter is Start
+    cpu.joy1Buffer = []
+  } else if (e.key === "t") { // t is Select
+    cpu.joy1Buffer = []
+  } else if (e.key === "q") { // e is B
+    cpu.joy1Buffer = []
+  } else if (e.key === "e") { // r is A
+    cpu.joy1Buffer = []
+  }
+})
 
 function handler(e: KeyboardEvent) {
+  // Sending two key presses for each key press to simulate the 60Hz polling rate of the NES controller
   if (e.key === "n") {
     nes.cpu.clock()
     nes.ppu.clock()
   } else if (e.key === "p") {
   } else if (e.key === "w" || e.key === "ArrowUp") {
-    cpu.joy1BufferReg |= 0x8
+    cpu.joy1Buffer.push(0x8)
+    cpu.joy1Buffer.push(0x8)
+    cpu.joy1Buffer.push(0x8)
+    cpu.joy1Buffer.push(0x8)
   } else if (e.key === "s" || e.key === "ArrowDown") {
-    cpu.joy1BufferReg |= 0x4
+    cpu.joy1Buffer.push(0x4)
+    cpu.joy1Buffer.push(0x4)
+    cpu.joy1Buffer.push(0x4)
+    cpu.joy1Buffer.push(0x4)
   } else if (e.key === "a" || e.key === "ArrowLeft") {
-    cpu.joy1BufferReg |= 0x2
+    cpu.joy1Buffer.push(0x2)
+    cpu.joy1Buffer.push(0x2)
+    cpu.joy1Buffer.push(0x2)
+    cpu.joy1Buffer.push(0x2)
   } else if (e.key === "d" || e.key === "ArrowRight") {
-    cpu.joy1BufferReg |= 0x1
+    cpu.joy1Buffer.push(0x1)
+    cpu.joy1Buffer.push(0x1)
+    cpu.joy1Buffer.push(0x1)
+    cpu.joy1Buffer.push(0x1)
   } else if (e.key === "Enter") { // Enter is Start
-    cpu.joy1BufferReg |= 0x10
+    cpu.joy1Buffer.push(0x10)
+    cpu.joy1Buffer.push(0x10)
+    cpu.joy1Buffer.push(0x10)
+    cpu.joy1Buffer.push(0x10)
   } else if (e.key === "t") { // t is Select
-    cpu.joy1BufferReg |= 0x20
-  } else if (e.key === "e") { // e is B
-    cpu.joy1BufferReg |= 0x40
-  } else if (e.key === "r") { // r is A
-    cpu.joy1BufferReg |= 0x80
+    cpu.joy1Buffer.push(0x20)
+    cpu.joy1Buffer.push(0x20)
+    cpu.joy1Buffer.push(0x20)
+    cpu.joy1Buffer.push(0x20)
+  } else if (e.key === "q") { // e is B
+    cpu.joy1Buffer.push(0x40)
+    cpu.joy1Buffer.push(0x40)
+    cpu.joy1Buffer.push(0x40)
+    cpu.joy1Buffer.push(0x40)
+  } else if (e.key === "e") { // r is A
+    cpu.joy1Buffer.push(0x80)
+    cpu.joy1Buffer.push(0x80)
+    cpu.joy1Buffer.push(0x80)
+    cpu.joy1Buffer.push(0x80)
   }
 }
 

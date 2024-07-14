@@ -145,7 +145,7 @@ export class Cpu {
     }
 
     // joy1Public: number = 0
-    joy1BufferReg: number = 0
+    // joy1BufferReg: number = 0
     joy1InternalReg: number = 0
     joy1Counter: number = 0
     joy1Buffer: number[] = []
@@ -170,8 +170,7 @@ export class Cpu {
             else if (this.joy1Counter === 0) this.joy1Counter++
             else if (this.joy1Counter === 1) {
                 this.joy1Counter++
-                this.joy1InternalReg = this.joy1BufferReg
-                this.joy1BufferReg = 0
+                this.joy1InternalReg = this.joy1Buffer.length ? this.joy1Buffer.splice(0, 1)[0] : 0
             }
         }
         else if (0x4000 <= address && address <= 0x4017) {
