@@ -60,6 +60,7 @@ export class Cpu {
     // extra cycles are added for page boundary, branch taken & branch take page boundary
     cycles: number = 0
 
+
     constructor(cart: Cart, ppu: Ppu, apu: Apu) {
         this.cart = cart
         this.ppu = ppu
@@ -147,6 +148,7 @@ export class Cpu {
     joy1BufferReg: number = 0
     joy1InternalReg: number = 0
     joy1Counter: number = 0
+    joy1Buffer: number[] = []
     write(address: number, value: number): void {
         this.memory[address] = value
         address = address & 0xFFFF

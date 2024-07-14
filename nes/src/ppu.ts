@@ -2,7 +2,6 @@ import { Cart } from "./carts"
 import { NES_COLORS_NC02 } from "./pallette"
 import { hex } from "./utils"
 
-let canvas = document.getElementById("screen") as HTMLCanvasElement
 
 export class Ppu {
     cart: Cart
@@ -17,6 +16,7 @@ export class Ppu {
     nmi: boolean = false
 
     frameComplete: boolean = false
+    screenBuffer = new Uint32Array(256 * 240)
 
     // v: During rendering, used for the scroll position. Outside of rendering, used as the current VRAM address.
     v: number = 0
@@ -128,7 +128,7 @@ export class Ppu {
                     possibleSpriteIds.push(i)
                 }
             }
-            let fgColor: string | undefined
+            let fgColor: number | undefined
             for (let j = 0; j < possibleSpriteIds.length; j++) {
                 const index = possibleSpriteIds[j] * 4
                 const y = this.oam[index]
@@ -156,14 +156,10 @@ export class Ppu {
                 break
             }
 
-            this.draw(this.cycle, this.scanline, fgColor ?? bgColor)
+            this.screenBuffer[this.scanline * 256 + this.cycle] = fgColor ?? bgColor
         }
 
         this.cycle++
-
-        if (this.cycle === 340) {
-            // draw sprites on line
-        }
 
         if (this.cycle >= 341) {
             this.cycle = 1
@@ -174,41 +170,6 @@ export class Ppu {
             }
         }
 
-    }
-
-    // TODO: move this bag out of ppu
-    // TODO: this buffering may cause artifacts
-    // buffer = new Array(24).fill(0)
-    // bufferIndex = 0
-    ctx = canvas?.getContext("2d")
-    draw(x: number, y: number, color: string) {
-        // this.buffer[this.bufferIndex++] = x
-        // this.buffer[this.bufferIndex++] = y
-        // this.buffer[this.bufferIndex++] = color
-        // if (this.bufferIndex < 24) {
-        //     return
-        // }
-        if (!canvas) {
-            canvas = document.getElementById("screen") as HTMLCanvasElement
-            return
-        }
-        if (!this.ctx) {
-            this.ctx = canvas.getContext("2d")
-            if (!this.ctx) {
-                return
-            }
-        }
-
-        const size = 2
-        this.ctx.fillStyle = color
-        this.ctx.fillRect(x * size - 1, y * size, size, size)
-
-        // for (let i = 0; i < 8; i++) {
-        //     const size = 2
-        //     this.ctx.fillStyle = this.buffer[i * 3 + 2]
-        //     this.ctx.fillRect(this.buffer[i * 3] * size, this.buffer[i * 3 + 1] * size, size, size)
-        // }
-        // this.bufferIndex = 0
     }
 
     readCpuRegister(reg: number) {

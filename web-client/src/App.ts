@@ -7,6 +7,7 @@ import { rom } from "./assets/roms/donkey-kong.nes.ts"
 // import { rom } from "./assets/roms/mario-bros.nes.ts"
 // import { rom } from "./assets/roms/balloon-fight.nes.ts"
 // import { rom } from "./assets/roms/ice-climbers.nes.ts"
+import "./index.css"
 
 const romBytes = rom.slice(16)
 const prgRom = romBytes.slice(0, 0x4000)
@@ -51,11 +52,38 @@ function handler(e: KeyboardEvent) {
 
 window.addEventListener("keydown", handler)
 
+let canvas = document.getElementById("screen") as HTMLCanvasElement | null
+let ctx = canvas?.getContext("2d")
+setInterval(function draw() {
+  if (!canvas) {
+    canvas = document.getElementById("screen") as HTMLCanvasElement | null
+    return
+  }
+  if (!ctx) {
+    ctx = canvas.getContext("2d")
+    return
+  }
+  const buffer = nes.ppu.screenBuffer
+  const clampedArray = new Uint8ClampedArray(buffer.length * 4);
+
+  for (let i = 0; i < buffer.length; i++) {
+    const color = buffer[i];
+    const index = i * 4;
+    clampedArray[index] = (color >> 24) & 0xFF;      // R
+    clampedArray[index + 1] = (color >> 16) & 0xFF;  // G
+    clampedArray[index + 2] = (color >> 8) & 0xFF;   // B
+    clampedArray[index + 3] = color & 0xFF;          // A
+  }
+  const imgData = new ImageData(clampedArray, 256, 240)
+  ctx.putImageData(imgData, 0, 0)
+
+}, 1000 / 60)
+
 
 function App() {
   let systemClock = 0
-  const BATCH_CYCLES = 2 ** 15
-  setInterval(function ticker() {
+  const BATCH_CYCLES = 90_000//2 ** 17
+  setInterval(function gameloop() {
     for (let i = 0; i < BATCH_CYCLES; i++) {
       if (nes.ppu.nmi) {
         nes.ppu.nmi = false
@@ -67,7 +95,7 @@ function App() {
       nes.ppu.clock()
       systemClock++
     }
-  }, 0)
+  }, 12)
 }
 
 App()
