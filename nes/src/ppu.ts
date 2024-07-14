@@ -135,12 +135,13 @@ export class Ppu {
                 const tileId = this.oam[index + 1] // pattern table id
                 const attribute = this.oam[index + 2]
                 const x = this.oam[index + 3]
+                const xFlipped = (attribute & 0x40) > 0
 
                 const page = this.spritePatternTableAddress ? 0x1000 : 0
                 const loChr = this.read(page + (16 * tileId) + this.scanline - y)
                 const hiChr = this.read(page + (16 * tileId) + this.scanline - y + 8)
                 // const bitShiftOffset = 0 - (this.cycle - x)
-                const bitShiftOffset = 7 - (this.cycle - x)
+                const bitShiftOffset = xFlipped ? this.cycle - x : 7 - (this.cycle - x)
                 const palletteIndex = ((loChr >> bitShiftOffset) & 1) | (((hiChr >> bitShiftOffset) & 1) << 1)
                 if (palletteIndex === 0) {
                     continue
